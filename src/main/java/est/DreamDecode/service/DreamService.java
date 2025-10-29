@@ -1,5 +1,9 @@
-package est.DreamDecode.dream;
+package est.DreamDecode.service;
 
+import est.DreamDecode.domain.Dream;
+import est.DreamDecode.dto.DreamRequest;
+import est.DreamDecode.dto.DreamResponse;
+import est.DreamDecode.repository.DreamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

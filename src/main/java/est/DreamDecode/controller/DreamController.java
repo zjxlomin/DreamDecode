@@ -1,5 +1,9 @@
-package est.DreamDecode.dream;
+package est.DreamDecode.controller;
 
+import est.DreamDecode.domain.Dream;
+import est.DreamDecode.dto.DreamRequest;
+import est.DreamDecode.dto.DreamResponse;
+import est.DreamDecode.service.DreamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

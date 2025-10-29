@@ -1,6 +1,6 @@
-package est.DreamDecode.dream;
+package est.DreamDecode.dto;
 
-import lombok.Builder;
+import est.DreamDecode.domain.Dream;
 import lombok.Getter;
 import lombok.Setter;
 

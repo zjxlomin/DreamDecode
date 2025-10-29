@@ -1,4 +1,4 @@
-package est.DreamDecode.dream;
+package est.DreamDecode.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
