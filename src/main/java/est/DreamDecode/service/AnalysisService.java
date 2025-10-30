@@ -7,12 +7,11 @@ import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.python.core.PyFunction;
-import org.python.core.PyObject;
-import org.python.core.PyString;
-import org.python.util.PythonInterpreter;
-import org.springframework.http.HttpStatus;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -20,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class AnalysisService {
     private final AnalysisRepository analysisRepository;
     private final DreamRepository dreamRepository;
-    private static PythonInterpreter interpreter;
 
     public AnalysisResponse addAnalysis(Long dreamId){
         Dream dream = dreamRepository.findById(dreamId)
@@ -61,12 +59,59 @@ public class AnalysisService {
     }
 
     public String dreamAnalyzeByPython(String dreamContent){
-        interpreter = new PythonInterpreter();
-        interpreter.execfile("src/main/resources/static/python/prompt.py"); // test.py 경로
+        String clientId = "515d3756-783e-484d-a04b-b7121c99fbb7";
 
-        PyFunction pyFunction = (PyFunction) interpreter.get("testFunc", PyFunction.class);
-        PyObject pyobj = pyFunction.__call__(new PyString(dreamContent));
+        String prompt =
+                "이 꿈이 갖는 의미를 출처 없이 알려주세요: " // TODO: 조건이나 길이 제한 추가
+                + dreamContent;
+        String result = singleAlanChat(clientId, prompt);
+        resetAlanState(clientId);
+        return result;
+    }
 
-        return pyobj.toString();
+    private String singleAlanChat(String clientId, String content){
+        String url = "https://kdt-api-function.azurewebsites.net/api/v1/question";
+        RestTemplate restTemplate = new RestTemplate();
+
+        String requestUrl = url + "?client_id=" + clientId + "&content=" + content;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                requestUrl,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        // 응답 JSON 파싱
+        try{
+            JSONObject jsonResponse = new JSONObject(response.getBody());
+            return jsonResponse.getString("content");
+        } catch(JSONException e){
+            return "Analyze failed";
+        }
+
+    }
+
+    private void resetAlanState(String clientId){
+        String url = "https://kdt-api-function.azurewebsites.net/api/v1/reset-state";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        JSONObject params = new JSONObject();
+        try{
+            params.put("client_id", clientId);
+        } catch(JSONException e){
+
+        }
+        HttpEntity<String> entity = new HttpEntity<>(params.toString(), headers);
+
+        restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
     }
 }
