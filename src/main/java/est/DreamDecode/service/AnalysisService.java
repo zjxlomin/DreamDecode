@@ -3,7 +3,6 @@ package est.DreamDecode.service;
 import est.DreamDecode.domain.Analysis;
 import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.AnalysisResponse;
-import est.DreamDecode.dto.UpdateAnalysisRequest;
 import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
 import jakarta.transaction.Transactional;
@@ -15,8 +14,6 @@ import org.python.util.PythonInterpreter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor

@@ -2,7 +2,10 @@ package est.DreamDecode.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "analysis")
@@ -10,7 +13,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Analysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +25,17 @@ public class Analysis {
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
     @OneToOne
     @JoinColumn(name = "dream_id")
     private Dream dream;
-
-    @Builder
-    public Analysis(String analysisResult, double sentiment) {
-        this.analysisResult = analysisResult;
-        this.sentiment = sentiment;
-    }
 
     public void updateAnalysis(String analysisResult, double sentiment) {
         this.analysisResult = analysisResult;

@@ -1,9 +1,7 @@
 package est.DreamDecode.controller;
 
 import est.DreamDecode.domain.Analysis;
-import est.DreamDecode.dto.AddAnalysisRequest;
 import est.DreamDecode.dto.AnalysisResponse;
-import est.DreamDecode.dto.UpdateAnalysisRequest;
 import est.DreamDecode.service.AnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
