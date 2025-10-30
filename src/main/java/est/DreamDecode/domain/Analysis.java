@@ -1,16 +1,15 @@
 package est.DreamDecode.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "analysis")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Analysis {
     @Id
@@ -24,11 +23,9 @@ public class Analysis {
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
 
-    /*
     @OneToOne
     @JoinColumn(name = "dream_id")
     private Dream dream;
-     */
 
     @Builder
     public Analysis(String analysisResult, double sentiment) {

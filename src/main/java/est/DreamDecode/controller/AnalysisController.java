@@ -12,30 +12,29 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/analysis")
+@RequestMapping("/api/dreams")
 public class AnalysisController {
     private final AnalysisService analysisService;
 
-    @PostMapping
-    public ResponseEntity<Analysis> addAnalysis(@RequestBody AddAnalysisRequest request) {
-        Analysis addAnalysis = analysisService.addAnalysis(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(addAnalysis);
+    @PostMapping("/{dreamId}/analysis")
+    public AnalysisResponse addAnalysis(@PathVariable Long dreamId) {
+        return analysisService.addAnalysis(dreamId);
     }
 
-    @GetMapping("/{analysisId}")
-    public ResponseEntity<AnalysisResponse> getAnalysisById(@PathVariable Long analysisId) {
-        Analysis analysis = analysisService.getAnalysisById(analysisId);
+    @GetMapping("/{dreamId}/analysis")
+    public ResponseEntity<AnalysisResponse> getAnalysisById(@PathVariable Long dreamId) {
+        Analysis analysis = analysisService.getAnalysisByDreamId(dreamId);
         AnalysisResponse response = new AnalysisResponse(analysis);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{analysisId}")
-    public ResponseEntity<Analysis> updateAnalysis(@PathVariable Long analysisId, @RequestBody UpdateAnalysisRequest request) {
-        Analysis updateAnalysis = analysisService.updateAnalysis(analysisId, request);
+    @PutMapping("/{dreamId}/analysis")
+    public ResponseEntity<Analysis> updateAnalysis(@PathVariable Long dreamId) {
+        Analysis updateAnalysis = analysisService.updateAnalysis(dreamId);
         return ResponseEntity.status(HttpStatus.OK).body(updateAnalysis);
     }
 
-    @DeleteMapping("/{analysisId}")
+    @DeleteMapping("/{dreamId}/analysis")
     public ResponseEntity<Void> deleteAnalysisById(@PathVariable Long analysisId) {
         analysisService.deleteAnalysisById(analysisId);
         return ResponseEntity.ok().build();
