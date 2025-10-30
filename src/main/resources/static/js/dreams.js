@@ -37,6 +37,26 @@ $(document).ready(function() {
         }
     });
 
+    // 삭제
+    $(document).on('click', '#deleteDreamBtn', async function () {
+        const modalEl = document.getElementById('viewDreamModal');
+        const dreamId = modalEl?.dataset?.dreamId;
+        if (!dreamId) return;
+
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        try {
+            const res = await fetch(`/api/dream/${dreamId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('삭제 실패');
+            alert('삭제되었습니다.');
+            const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+            modal?.hide();
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert('오류가 발생했습니다: ' + (e.message || e));
+        }
+    });
+
     // 카드 '자세히 보기' 버튼 → 단건 조회 후 상세 모달 표시
     $(document).on('click', '.dream-card .btn.btn-primary', async function (e) {
         // 기본 a 링크 동작 방지 (상단으로 스크롤되는 것 방지)
@@ -112,14 +132,24 @@ $(document).ready(function() {
                 body: JSON.stringify({ title, content, published })
             });
             if (!res.ok) throw new Error('수정 실패');
+            let updated;
+            try {
+                updated = await res.json();
+            } catch (_) {
+                updated = { title, content, published };
+            }
 
-            alert('수정되었습니다.');
-            // 성공 시 즉시 보기 모드 업데이트
-            $('#detailTitle').text(title);
-            $('#detailContent').text(content);
-            $('#detailPublished').text(published ? '공개' : '비공개');
+            // 모달 내용 업데이트
+            $('#detailTitle').text(updated.title ?? title);
+            $('#detailContent').text(updated.content ?? content);
+            $('#detailPublished').text((updated.published ?? published) ? '공개' : '비공개');
 
-            // 편집 -> 보기 전환
+            // 카드 목록의 해당 항목도 즉시 반영
+            const $card = $(`.dream-card[data-dream-id='${dreamId}']`);
+            $card.find('.card-title').text(updated.title ?? title);
+            $card.find('.card-text').text(updated.content ?? content);
+
+            // 편집 -> 보기 전환 (모달은 유지)
             $('#viewDreamModalLabel').text('꿈 상세');
             $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
             $('#editTitle, #editContent').addClass('d-none');
@@ -128,8 +158,7 @@ $(document).ready(function() {
             $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
             $('#editDreamBtn').removeClass('d-none');
 
-            // 목록도 반영되도록 새로고침
-            window.location.reload();
+            alert('수정되었습니다.');
         } catch (e) {
             console.error(e);
             alert('오류가 발생했습니다: ' + (e.message || e));
