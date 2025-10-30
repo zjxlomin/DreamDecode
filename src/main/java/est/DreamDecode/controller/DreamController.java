@@ -29,11 +29,18 @@ public class DreamController {
     return "dreams";
   }
 
-  // 조회 ( 테스트용 )
+  // 전체 조회
   @GetMapping("/api/dream")
   public ResponseEntity<List<DreamResponse>> getPublicDreams() {
     List<DreamResponse> dreams = dreamService.getAllPublicDreams();
     return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  // 단일 조회
+  @GetMapping("/api/dream/{id}")
+  public ResponseEntity<DreamResponse> getDream(@PathVariable("id") Long dreamId) {
+    DreamResponse dream = dreamService.getDreamById(dreamId);
+    return ResponseEntity.ok(dream); // 200 OK + JSON 반환
   }
 
   // 등록
@@ -54,7 +61,7 @@ public class DreamController {
   }
 
   // 삭제
-  @DeleteMapping("api/dream/{id}")
+  @DeleteMapping("/api/dream/{id}")
   @ResponseBody
   public ResponseEntity<Void> deleteDream(@PathVariable("id") Long dreamId) {
     dreamService.deleteDream(dreamId);

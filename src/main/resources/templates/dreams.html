@@ -20,7 +20,7 @@
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="#page-top">Dream Decode</a>
+            <a class="navbar-brand" href="/" th:href="@{/}">Dream Decode</a>
             <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                 Menu
                 <i class="fas fa-bars"></i>
@@ -44,180 +44,26 @@
             </div>
         </div>
     </header>
+    
     <!-- 꿈 등록 버튼 + 목록 카드 -->
     <section class="py-5 bg-light" id="dreams">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="m-0">공개된 꿈 목록</h3>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createDreamModal">꿈 등록</button>
+            <div class="section-header d-flex justify-content-between align-items-center mb-4">
+                <h3 class="m-0 section-title">Dream List</h3>
+                <button type="button" class="btn btn-primary btn-sm section-action" data-bs-toggle="modal" data-bs-target="#createDreamModal">꿈 등록</button>
             </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
+            <div class="row g-4" th:if="${dreams} != null">
+                <div class="col-md-4" th:each="dream : ${dreams}">
+                    <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}">
                         <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
+                            <h5 class="card-title" th:text="${dream.title}">꿈 제목</h5>
+                            <p class="card-text" th:text="${dream.content}">꿈 내용</p>
                         </div>
                         <div class="card-footer text-center">
                             <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 dream-card">
-                        <div class="card-body">
-                            <h5 class="card-title">꿈 제목 1</h5>
-                            <p class="card-text">꿈 설명 1: 여기에 꿈에 대한 간단한 설명을 넣을 수 있습니다.</p>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-                
             </div>
         </div>
     </section>
@@ -268,24 +114,41 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">제목:</label>
+                        <label class="form-label fw-bold">제목</label>
                         <div id="detailTitle" class="form-control" style="background-color:#f8f9fa"></div>
+                        <input id="editTitle" class="form-control d-none" type="text" placeholder="제목" />
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="detailContentWrap">
                         <label class="form-label fw-bold">내용</label>
-                        <div id="detailContent" class="form-control" style="white-space:pre-wrap; background-color:#f8f9fa"></div>
+                        <div id="detailContent" class="form-control" style="white-space:pre-wrap; background-color:#f8f9fa; min-height: 6rem;"></div>
+                        <textarea id="editContent" class="form-control d-none" rows="6" placeholder="내용"></textarea>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="detailAnalysisWrap">
                         <label class="form-label fw-bold">분석</label>
-                        <div id="detailAnalysis" class="form-control" style="white-space:pre-wrap; background-color:#f8f9fa">분석 준비중</div>
+                        <div id="detailAnalysis" class="form-control" style="white-space:pre-wrap; background-color:#f8f9fa; min-height: 6rem;">분석 준비중</div>
                     </div>
-                    <div class="mb-1">
-                        <label class="form-label fw-bold">감정점수 :</label>
-                        <div id="detailEmotion" class="form-control" style="background-color:#f8f9fa">-점</div>
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-sm-2 col-form-label fw-bold mb-0">공개여부</label>
+                        <div class="col-sm-10">
+                            <div id="detailPublished" class="form-control-plaintext">공개</div>
+                            <div class="form-check d-none" id="editPublishedWrap">
+                                <input class="form-check-input" type="checkbox" id="editPublished">
+                                <label class="form-check-label" for="editPublished">공개하기</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-1 align-items-center" id="detailEmotionWrap">
+                        <label class="col-sm-2 col-form-label fw-bold mb-0">감정점수 : </label>
+                        <div class="col-sm-10">
+                            <div id="detailEmotion" class="form-control-plaintext">-점</div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
+                    <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
                 </div>
             </div>
         </div>

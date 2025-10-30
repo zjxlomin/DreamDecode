@@ -24,6 +24,12 @@ public class DreamService {
     return dreams;
   }
 
+  public DreamResponse getDreamById(Long id) {
+    Dream dream = dreamRepository.findById(id)
+                         .orElseThrow(() -> new RuntimeException("Dream not found with id " + id));
+    return DreamResponse.from(dream);
+  }
+
   public Dream saveDream(DreamRequest request) {
     return dreamRepository.save(request.toEntity());
   }
