@@ -21,7 +21,7 @@ public class DreamController {
     this.dreamService = dreamService;
   }
 
-  @GetMapping("/dreams")
+  @GetMapping("/dream")
   public String getPublicDreams(Model model) {
     List<DreamResponse> dreams = dreamService.getAllPublicDreams();
     model.addAttribute("dreams", dreams);
@@ -29,21 +29,32 @@ public class DreamController {
     return "dreams";
   }
 
-  @PostMapping("/api/dreams")
+  // 조회 ( 테스트용 )
+  @GetMapping("/api/dream")
+  public ResponseEntity<List<DreamResponse>> getPublicDreams() {
+    List<DreamResponse> dreams = dreamService.getAllPublicDreams();
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  // 등록
+  @PostMapping("/api/dream")
   @ResponseBody
   public ResponseEntity<Dream> saveDream(@RequestBody DreamRequest request) {
+    request.setUserId(3l);
     Dream savedDream = dreamService.saveDream(request);
     return ResponseEntity.status(201).body(savedDream);// 201 Created, 저장된 객체 반환
   }
 
-  @PutMapping("/api/dreams/{id}")
+  // 수정
+  @PutMapping("/api/dream/{id}")
   @ResponseBody
   public ResponseEntity<Dream> updateDream(@PathVariable("id") Long dreamId, @RequestBody DreamRequest request) {
     Dream updated = dreamService.updateDream(dreamId, request);
     return ResponseEntity.ok(updated); // 200 OK + 업데이트된 객체 반환
   }
 
-  @DeleteMapping("api/dreams/{id}")
+  // 삭제
+  @DeleteMapping("api/dream/{id}")
   @ResponseBody
   public ResponseEntity<Void> deleteDream(@PathVariable("id") Long dreamId) {
     dreamService.deleteDream(dreamId);

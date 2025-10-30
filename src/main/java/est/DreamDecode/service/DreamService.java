@@ -18,7 +18,7 @@ public class DreamService {
   }
 
   public List<DreamResponse> getAllPublicDreams() {
-    List<DreamResponse> dreams = dreamRepository.findAllByIsPublicTrue().stream()
+    List<DreamResponse> dreams = dreamRepository.findAllByPublishedTrue().stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
@@ -43,7 +43,7 @@ public class DreamService {
     if (request.getUserId() != null) {
       dream.setUserId(request.getUserId());
     }
-    dream.setPublic(request.isPublic());
+    dream.setPublished(request.isPublished());
 
     return dream;
   }
