@@ -1,5 +1,7 @@
 package est.DreamDecode.domain;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,14 +38,14 @@ public class Dream {
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
-  @Column(name = "is_public", nullable = false)
-  private boolean isPublic;
+  @Column(name = "published", nullable = false)
+  private boolean published;
 
   @Builder
-  public Dream(Long userId, String title, String content, boolean isPublic) {
+  public Dream(Long userId, String title, String content, boolean published) {
     this.userId = userId;
     this.title = title;
     this.content = content;
-    this.isPublic = isPublic;
+    this.published = published;
   }
 }
