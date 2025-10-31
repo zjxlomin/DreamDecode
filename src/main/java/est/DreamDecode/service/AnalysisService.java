@@ -76,6 +76,8 @@ public class AnalysisService {
                 
                 꿈의 주요 키워드를 기반으로 3~5개의 태그를 생성하세요.
                 
+                마지막으로, 꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장으로 작성하세요.
+                
                 반드시 아래 JSON 형식으로 응답하세요.
                 JSON 키 이름은 analysis, scene, emotion, interpretation, overall_insight, suggestion, category, tags로 반드시 유지하고, 다른 키는 추가하지 마세요.
                 각 항목의 값은 자연스러운 문장으로 작성하되, 구조는 반드시 유지하세요.
@@ -97,7 +99,8 @@ public class AnalysisService {
                     "overall_insight": "꿈 전체의 심리적 해석과 감정 경향 요약",
                     "suggestion": "감정을 다스리거나 회복하기 위한 조언",
                     "category": ["주요 주제 카테고리들"],
-                    "tags": ["연관 태그들"]
+                    "tags": ["연관 태그들"],
+                    "emotion_summary": "꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장"
                 }}
                 
                 꿈의 내용은 다음과 같습니다:
@@ -125,7 +128,6 @@ public class AnalysisService {
                 String.class
         );
 
-        // 응답 JSON 파싱
         try{
             JSONObject jsonResponse = new JSONObject(response.getBody());
             return jsonResponse.getString("content");
