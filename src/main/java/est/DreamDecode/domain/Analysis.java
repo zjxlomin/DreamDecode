@@ -19,7 +19,7 @@ public class Analysis {
     @Column(name = "analysis", updatable = false)
     private Long analysisId;
 
-    @Column(name = "analysis_result", columnDefinition = "text", nullable = false)
+    @Column(name = "analysis_result", columnDefinition = "json", nullable = false)
     private String analysisResult;
 
     @Column(name = "sentiment", nullable = false)
