@@ -11,10 +11,12 @@ import java.util.List;
 
 @Service
 public class DreamService {
-  private DreamRepository dreamRepository;
+  private final DreamRepository dreamRepository;
+  private final NaturalLanguageService nlpService;
 
-  public DreamService(DreamRepository dreamRepository) {
+  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService) {
     this.dreamRepository = dreamRepository;
+    this.nlpService = nlpService;
   }
 
   public List<DreamResponse> getAllPublicDreams() {
@@ -30,7 +32,16 @@ public class DreamService {
     return DreamResponse.from(dream);
   }
 
+  @Transactional
   public Dream saveDream(DreamRequest request) {
+    Dream dream = dreamRepository.save(request.toEntity());
+    // Alan api로 꿈 내용 전송
+    // String anlatext = request.getContent();
+    // Alan api에 alantext 전달
+    // Analysis analysis = 전송받은 json 엔티티로 변경하는 코드
+    String nlptext = "전송받은 json 에서 emotion_summary 추출";
+    nlpService.analyzeSentiment(nlptext);
+
     return dreamRepository.save(request.toEntity());
   }
 
