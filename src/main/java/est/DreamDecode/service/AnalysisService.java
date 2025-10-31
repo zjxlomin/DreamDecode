@@ -46,7 +46,7 @@ public class AnalysisService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         String dreamContent = dream.getContent();
         String dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        double sentiment = 1.0;
+        double sentiment = 1.0; // TODO: 감정 점수 산출
 
         Analysis analysis = getAnalysisByDreamId(dreamId);
         analysis.updateAnalysis(dreamAnalysis, sentiment);
@@ -62,7 +62,7 @@ public class AnalysisService {
         String clientId = "515d3756-783e-484d-a04b-b7121c99fbb7";
 
         String prompt =
-                "이 꿈이 갖는 의미를 출처 없이 알려주세요: " // TODO: 조건이나 길이 제한 추가
+                "이 꿈의 원인이 되는 감정이나 이 꿈이 갖는 상징을 출처 없이 분석해줘: " // TODO: 조건이나 길이 제한 추가.. JSON 형식으로?
                 + dreamContent;
         String result = singleAlanChat(clientId, prompt);
         resetAlanState(clientId);
