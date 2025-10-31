@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # 로컬 개발 편의
+    properties:
+      hibernate:
+        # PostgreSQL은 최신부트에서 dialect 생략 가능하지만, 명시 원하시면 유지
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        # show_sql은 콘솔에 찍고, 아래 logging과 중복되니 보통 하나만 택하세요
+        show_sql: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+
+logging:
+  level:
+    # 웹 로그는 과하지 않게
+    org.springframework.web: info
+    # JPA SQL 로그 보고 싶으면 아래 2줄 켜고, 위 show_sql=false 유지 추천
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
