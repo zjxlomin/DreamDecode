@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface DreamRepository extends JpaRepository<Dream, Long> {
 
-  List<Dream> findAllByIsPublicTrue();
+  List<Dream> findAllByPublishedTrue();
 }

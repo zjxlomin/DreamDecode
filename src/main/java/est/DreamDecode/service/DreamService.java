@@ -18,10 +18,16 @@ public class DreamService {
   }
 
   public List<DreamResponse> getAllPublicDreams() {
-    List<DreamResponse> dreams = dreamRepository.findAllByIsPublicTrue().stream()
+    List<DreamResponse> dreams = dreamRepository.findAllByPublishedTrue().stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
+  }
+
+  public DreamResponse getDreamById(Long id) {
+    Dream dream = dreamRepository.findById(id)
+                         .orElseThrow(() -> new RuntimeException("Dream not found with id " + id));
+    return DreamResponse.from(dream);
   }
 
   public Dream saveDream(DreamRequest request) {
@@ -43,7 +49,7 @@ public class DreamService {
     if (request.getUserId() != null) {
       dream.setUserId(request.getUserId());
     }
-    dream.setPublic(request.isPublic());
+    dream.setPublished(request.isPublished());
 
     return dream;
   }
