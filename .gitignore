@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+.gitignore
+build.gradle
+*.yml
+*.properties
+.env
