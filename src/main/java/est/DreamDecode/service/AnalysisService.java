@@ -27,11 +27,14 @@ public class AnalysisService {
     private final DreamRepository dreamRepository;
     private final SceneRepository sceneRepository;
 
-    // POST: 꿈 분석 결과 및 장면 분석 저장
     @Transactional
-    public AnalysisResponse addAnalysis(Long dreamId){
+    public AnalysisResponse addOrUpdateAnalysis(Long dreamId, boolean isPost){
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if(!isPost) {
+            sceneRepository.deleteByDreamId(dreamId); // 기존 장면 삭제 후 추가
+        }
 
         String dreamContent = dream.getContent();
         JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
@@ -57,72 +60,52 @@ public class AnalysisService {
         String summary = dreamAnalysis.getString("summary");
         double sentiment = 1.0; // TODO: 감정 점수 산출
 
-        /* TODO: categories, tags를 DB에 text[]로 저장??
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> categoriesToList = mapper.readValue(categories, new TypeReference<List<String>>() {});
-        List<String> tagsToList = mapper.readValue(tags, new TypeReference<List<String>>() {});
+        /* categories, tags List<String>으로 변환 후
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            List<String> categoriesToList = mapper.readValue(categories, new TypeReference<List<String>>() {});
+            List<String> tagsToList = mapper.readValue(tags, new TypeReference<List<String>>() {});
+            for(String c : categoriesToList){
+                System.out.println(c);
+            }
+            for(String t : tagsToList){
+                System.out.println(t);
+            }
+        } catch(JsonProcessingException e) {
+
+        }
         */
 
-        Analysis analysis = new Analysis();
-        analysis.setInsight(insight);
-        analysis.setSuggestion(suggestion);
-        analysis.setCategories(categories);
-        analysis.setTags(tags);
-        analysis.setSummary(summary);
-        analysis.setSentiment(sentiment);
-        analysis.setDream(dream);
-        return new AnalysisResponse(analysisRepository.save(analysis));
+        if(isPost) {
+            Analysis analysis = new Analysis();
+            analysis.setInsight(insight);
+            analysis.setSuggestion(suggestion);
+            analysis.setCategories(categories);
+            analysis.setTags(tags);
+            analysis.setSummary(summary);
+            analysis.setSentiment(sentiment);
+            analysis.setDream(dream);
+            return new AnalysisResponse(analysisRepository.save(analysis));
+        }
+        else {
+            Analysis analysis = getAnalysisByDreamId(dreamId);
+            analysis.updateAnalysis(
+                    insight,
+                    suggestion,
+                    categories,
+                    tags,
+                    summary,
+                    sentiment
+            );
+            return new AnalysisResponse(analysis);
+        }
+
     }
 
-    // GET: 꿈 분석 및 장면 분석 조회
     public Analysis getAnalysisByDreamId(Long dreamId){
         return analysisRepository.findAll()
                 .stream().filter(a -> a.getDream().getId().equals(dreamId))
                 .toList().get(0);
-    }
-
-    // PUT: 꿈 분석 수정, 장면 분석 삭제 후 추가
-    @Transactional
-    public AnalysisResponse updateAnalysis(Long dreamId){
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        sceneRepository.deleteByDreamId(dreamId);
-
-        String dreamContent = dream.getContent();
-        JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-
-        List<Object> scenes = dreamAnalysis.getJSONArray("analysis").toList();
-        for(Object s : scenes){
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> map = mapper.convertValue(s, Map.class);
-            String content = map.get("scene");
-            String emotion = map.get("emotion");
-            String interpretation = map.get("interpretation");
-            Scene scene = new Scene();
-            scene.setContent(content);
-            scene.setEmotion(emotion);
-            scene.setInterpretation(interpretation);
-            scene.setDream(dream);
-            sceneRepository.save(scene);
-        }
-        String insight = dreamAnalysis.getString("insight");
-        String suggestion = dreamAnalysis.getString("suggestion");
-        String categories = dreamAnalysis.getJSONArray("categories").toString();
-        String tags = dreamAnalysis.getJSONArray("tags").toString();
-        String summary = dreamAnalysis.getString("summary");
-        double sentiment = 1.0; // TODO: 감정 점수 산출
-
-        Analysis analysis = getAnalysisByDreamId(dreamId);
-        analysis.updateAnalysis(
-                insight,
-                suggestion,
-                categories,
-                tags,
-                summary,
-                sentiment
-        );
-
-        return new AnalysisResponse(analysis);
     }
 
     // 프롬프트

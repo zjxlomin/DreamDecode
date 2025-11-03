@@ -16,7 +16,7 @@ public class AnalysisController {
 
     @PostMapping("/{dreamId}/analysis")
     public AnalysisResponse addAnalysis(@PathVariable Long dreamId) {
-        return analysisService.addAnalysis(dreamId);
+        return analysisService.addOrUpdateAnalysis(dreamId, true);
     }
 
     @GetMapping("/{dreamId}/analysis")
@@ -28,6 +28,6 @@ public class AnalysisController {
 
     @PutMapping("/{dreamId}/analysis")
     public AnalysisResponse updateAnalysis(@PathVariable Long dreamId) {
-        return analysisService.updateAnalysis(dreamId);
+        return analysisService.addOrUpdateAnalysis(dreamId, false);
     }
 }
