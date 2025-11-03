@@ -9,7 +9,11 @@ import java.time.LocalDateTime;
 @Getter
 public class AnalysisResponse {
     private Long analysisId;
-    private String analysisResult;
+    private String insight;
+    private String suggestion;
+    private String categories;
+    private String tags;
+    private String summary;
     private double sentiment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -17,7 +21,11 @@ public class AnalysisResponse {
 
     public AnalysisResponse(Analysis analysis) {
         this.analysisId = analysis.getAnalysisId();
-        this.analysisResult = analysis.getAnalysisResult();
+        this.insight = analysis.getInsight();
+        this.suggestion = analysis.getSuggestion();
+        this.categories = analysis.getCategories();
+        this.tags = analysis.getTags();
+        this.summary = analysis.getSummary();
         this.sentiment = analysis.getSentiment();
         this.createdAt = analysis.getCreatedAt();
         this.updatedAt = analysis.getUpdatedAt();

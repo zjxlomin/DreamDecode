@@ -24,11 +24,27 @@ public class AnalysisService {
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         String dreamContent = dream.getContent();
-        String dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        double sentiment = 1.0;
+        JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
+        // TODO: dreamAnalysis.getJSONArray("analysis")
+        String insight = dreamAnalysis.getString("insight");
+        String suggestion = dreamAnalysis.getString("suggestion");
+        String categories = dreamAnalysis.getJSONArray("categories").toString();
+        String tags = dreamAnalysis.getJSONArray("tags").toString();
+        String summary = dreamAnalysis.getString("summary");
+        double sentiment = 1.0; // TODO: 감정 점수 산출
+
+        /* TODO: categories, tags를 DB에 text[]로 저장??
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> categoriesToList = mapper.readValue(categories, new TypeReference<List<String>>() {});
+        List<String> tagsToList = mapper.readValue(tags, new TypeReference<List<String>>() {});
+        */
 
         Analysis analysis = new Analysis();
-        analysis.setAnalysisResult(dreamAnalysis);
+        analysis.setInsight(insight);
+        analysis.setSuggestion(suggestion);
+        analysis.setCategories(categories);
+        analysis.setTags(tags);
+        analysis.setSummary(summary);
         analysis.setSentiment(sentiment);
         analysis.setDream(dream);
         return new AnalysisResponse(analysisRepository.save(analysis));
@@ -45,11 +61,24 @@ public class AnalysisService {
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         String dreamContent = dream.getContent();
-        String dreamAnalysis = dreamAnalyzeByPython(dreamContent);
+        JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
+        // TODO: dreamAnalysis.getJSONArray("analysis")
+        String insight = dreamAnalysis.getString("insight");
+        String suggestion = dreamAnalysis.getString("suggestion");
+        String categories = dreamAnalysis.getJSONArray("categories").toString();
+        String tags = dreamAnalysis.getJSONArray("tags").toString();
+        String summary = dreamAnalysis.getString("summary");
         double sentiment = 1.0; // TODO: 감정 점수 산출
 
         Analysis analysis = getAnalysisByDreamId(dreamId);
-        analysis.updateAnalysis(dreamAnalysis, sentiment);
+        analysis.updateAnalysis(
+                insight,
+                suggestion,
+                categories,
+                tags,
+                summary,
+                sentiment
+        );
 
         return analysis;
     }
@@ -58,7 +87,7 @@ public class AnalysisService {
         analysisRepository.deleteById(analysisId);
     }
 
-    public String dreamAnalyzeByPython(String dreamContent){
+    public JSONObject dreamAnalyzeByPython(String dreamContent){
         String clientId = "515d3756-783e-484d-a04b-b7121c99fbb7";
 
         String prompt = """
@@ -78,9 +107,8 @@ public class AnalysisService {
                 
                 마지막으로, 꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장으로 작성하세요.
                 
-                반드시 아래 JSON 형식으로 응답하세요.
-                JSON 키 이름은 analysis, scene, emotion, interpretation, overall_insight, suggestion, category, tags로 반드시 유지하고, 다른 키는 추가하지 마세요.
-                각 항목의 값은 자연스러운 문장으로 작성하되, 구조는 반드시 유지하세요.
+                반드시 아래 JSON 형식의 구조를 지키면서 응답하세요.
+                JSON 키 이름은 analysis, scene, emotion, interpretation, insight, suggestion, categories, tags, summary로 반드시 유지하고, 다른 키는 추가하지 마세요.
                 
                 {{
                     "analysis": [
@@ -96,25 +124,27 @@ public class AnalysisService {
                         }},
                         ...
                     ],
-                    "overall_insight": "꿈 전체의 심리적 해석과 감정 경향 요약",
+                    "insight": "꿈 전체의 심리적 해석과 감정 경향 요약",
                     "suggestion": "감정을 다스리거나 회복하기 위한 조언",
-                    "category": ["주요 주제 카테고리들"],
+                    "categories": ["주요 주제 카테고리들"],
                     "tags": ["연관 태그들"],
-                    "emotion_summary": "꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장"
+                    "summary": "꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장"
                 }}
                 
                 꿈의 내용은 다음과 같습니다:
-                """ + dreamContent;
-        String result = singleAlanChat(clientId, prompt);
+                """
+                + dreamContent;
+
+        JSONObject result = singleAlanChat(clientId, prompt);
         resetAlanState(clientId);
         return result;
     }
 
-    private String singleAlanChat(String clientId, String content){
+    private JSONObject singleAlanChat(String clientId, String prompt){
         String url = "https://kdt-api-function.azurewebsites.net/api/v1/question";
         RestTemplate restTemplate = new RestTemplate();
 
-        String requestUrl = url + "?client_id=" + clientId + "&content=" + content;
+        String requestUrl = url + "?client_id=" + clientId + "&content=" + prompt;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -130,9 +160,13 @@ public class AnalysisService {
 
         try{
             JSONObject jsonResponse = new JSONObject(response.getBody());
-            return jsonResponse.getString("content");
+            String content = jsonResponse.getString("content");
+            content = content.replaceAll("(?s)```json\\s*", "")
+                    .replaceAll("(?s)```\\s*", "")
+                    .trim();
+            return new JSONObject(content);
         } catch(JSONException e){
-            return "Analyze failed";
+            return null;
         }
 
     }

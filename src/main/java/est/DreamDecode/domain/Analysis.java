@@ -19,8 +19,20 @@ public class Analysis {
     @Column(name = "analysis", updatable = false)
     private Long analysisId;
 
-    @Column(name = "analysis_result", columnDefinition = "json", nullable = false)
-    private String analysisResult;
+    @Column(name = "insight", nullable = false)
+    private String insight;
+
+    @Column(name = "suggestion", nullable = false)
+    private String suggestion;
+
+    @Column(name = "categories", nullable = false)
+    private String categories;
+
+    @Column(name = "tags", nullable = false)
+    private String tags;
+
+    @Column(name = "summary", nullable = false)
+    private String summary;
 
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
@@ -37,8 +49,19 @@ public class Analysis {
     @JoinColumn(name = "dream_id")
     private Dream dream;
 
-    public void updateAnalysis(String analysisResult, double sentiment) {
-        this.analysisResult = analysisResult;
+    public void updateAnalysis(
+            String insight,
+            String suggestion,
+            String categories,
+            String tags,
+            String summary,
+            double sentiment
+    ) {
+        this.insight = insight;
+        this.suggestion = suggestion;
+        this.categories = categories;
+        this.tags = tags;
+        this.summary = summary;
         this.sentiment = sentiment;
     }
 }
