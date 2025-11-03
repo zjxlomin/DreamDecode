@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class Analysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "analysis", updatable = false)
+    @Column(name = "analysis_id", updatable = false)
     private Long analysisId;
 
     @Column(name = "insight", nullable = false)

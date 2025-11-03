@@ -55,9 +55,8 @@ public class DreamController {
   // 수정
   @PutMapping("/api/dream/{id}")
   @ResponseBody
-  public ResponseEntity<Dream> updateDream(@PathVariable("id") Long dreamId, @RequestBody DreamRequest request) {
-    Dream updated = dreamService.updateDream(dreamId, request);
-    return ResponseEntity.ok(updated); // 200 OK + 업데이트된 객체 반환
+  public DreamResponse updateDream(@PathVariable("id") Long dreamId, @RequestBody DreamRequest request) {
+    return dreamService.updateDream(dreamId, request); // 200 OK + 업데이트된 객체 반환
   }
 
   // 삭제

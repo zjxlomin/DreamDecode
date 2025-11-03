@@ -27,14 +27,7 @@ public class AnalysisController {
     }
 
     @PutMapping("/{dreamId}/analysis")
-    public ResponseEntity<Analysis> updateAnalysis(@PathVariable Long dreamId) {
-        Analysis updateAnalysis = analysisService.updateAnalysis(dreamId);
-        return ResponseEntity.status(HttpStatus.OK).body(updateAnalysis);
-    }
-
-    @DeleteMapping("/{dreamId}/analysis")
-    public ResponseEntity<Void> deleteAnalysisById(@PathVariable Long analysisId) {
-        analysisService.deleteAnalysisById(analysisId);
-        return ResponseEntity.ok().build();
+    public AnalysisResponse updateAnalysis(@PathVariable Long dreamId) {
+        return analysisService.updateAnalysis(dreamId);
     }
 }

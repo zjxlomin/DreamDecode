@@ -1,10 +1,13 @@
 package est.DreamDecode.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import est.DreamDecode.domain.Analysis;
 import est.DreamDecode.domain.Dream;
+import est.DreamDecode.domain.Scene;
 import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
+import est.DreamDecode.repository.SceneRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
@@ -14,18 +17,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AnalysisService {
     private final AnalysisRepository analysisRepository;
     private final DreamRepository dreamRepository;
+    private final SceneRepository sceneRepository;
 
+    // POST: 꿈 분석 결과 및 장면 분석 저장
+    @Transactional
     public AnalysisResponse addAnalysis(Long dreamId){
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
         String dreamContent = dream.getContent();
         JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        // TODO: dreamAnalysis.getJSONArray("analysis")
+
+        List<Object> scenes = dreamAnalysis.getJSONArray("analysis").toList();
+        for(Object s : scenes){
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> map = mapper.convertValue(s, Map.class);
+            String content = map.get("scene");
+            String emotion = map.get("emotion");
+            String interpretation = map.get("interpretation");
+            Scene scene = new Scene();
+            scene.setContent(content);
+            scene.setEmotion(emotion);
+            scene.setInterpretation(interpretation);
+            scene.setDream(dream);
+            sceneRepository.save(scene);
+        }
         String insight = dreamAnalysis.getString("insight");
         String suggestion = dreamAnalysis.getString("suggestion");
         String categories = dreamAnalysis.getJSONArray("categories").toString();
@@ -50,19 +74,37 @@ public class AnalysisService {
         return new AnalysisResponse(analysisRepository.save(analysis));
     }
 
+    // GET: 꿈 분석 및 장면 분석 조회
     public Analysis getAnalysisByDreamId(Long dreamId){
         return analysisRepository.findAll()
                 .stream().filter(a -> a.getDream().getId().equals(dreamId))
                 .toList().get(0);
     }
 
+    // PUT: 꿈 분석 수정, 장면 분석 삭제 후 추가
     @Transactional
-    public Analysis updateAnalysis(Long dreamId){
+    public AnalysisResponse updateAnalysis(Long dreamId){
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        sceneRepository.deleteByDreamId(dreamId);
+
         String dreamContent = dream.getContent();
         JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        // TODO: dreamAnalysis.getJSONArray("analysis")
+
+        List<Object> scenes = dreamAnalysis.getJSONArray("analysis").toList();
+        for(Object s : scenes){
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> map = mapper.convertValue(s, Map.class);
+            String content = map.get("scene");
+            String emotion = map.get("emotion");
+            String interpretation = map.get("interpretation");
+            Scene scene = new Scene();
+            scene.setContent(content);
+            scene.setEmotion(emotion);
+            scene.setInterpretation(interpretation);
+            scene.setDream(dream);
+            sceneRepository.save(scene);
+        }
         String insight = dreamAnalysis.getString("insight");
         String suggestion = dreamAnalysis.getString("suggestion");
         String categories = dreamAnalysis.getJSONArray("categories").toString();
@@ -80,13 +122,10 @@ public class AnalysisService {
                 sentiment
         );
 
-        return analysis;
+        return new AnalysisResponse(analysis);
     }
 
-    public void deleteAnalysisById(Long analysisId){
-        analysisRepository.deleteById(analysisId);
-    }
-
+    // 프롬프트
     public JSONObject dreamAnalyzeByPython(String dreamContent){
         String clientId = "515d3756-783e-484d-a04b-b7121c99fbb7";
 
