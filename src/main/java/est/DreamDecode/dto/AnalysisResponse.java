@@ -9,8 +9,10 @@ import java.util.List;
 @Getter
 public class AnalysisResponse {
     private Long analysisId;
+    private Long dreamId;
     private String dreamTitle;
     private String dreamContent;
+    private boolean dreamPublished;
     private List<SceneResponse> scenes;
     private String insight;
     private String suggestion;
@@ -23,8 +25,10 @@ public class AnalysisResponse {
 
     public AnalysisResponse(Analysis analysis) {
         this.analysisId = analysis.getAnalysisId();
+        this.dreamId = analysis.getDream().getId();
         this.dreamTitle = analysis.getDream().getTitle();
         this.dreamContent = analysis.getDream().getContent();
+        this.dreamPublished = analysis.getDream().isPublished();
         this.scenes = analysis.getDream().getScenes()
                 .stream().map(SceneResponse::new).toList();
         this.insight = analysis.getInsight();
