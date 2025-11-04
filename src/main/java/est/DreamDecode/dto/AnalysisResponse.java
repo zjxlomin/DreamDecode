@@ -9,6 +9,8 @@ import java.util.List;
 @Getter
 public class AnalysisResponse {
     private Long analysisId;
+    private String dreamTitle;
+    private String dreamContent;
     private List<SceneResponse> scenes;
     private String insight;
     private String suggestion;
@@ -21,6 +23,8 @@ public class AnalysisResponse {
 
     public AnalysisResponse(Analysis analysis) {
         this.analysisId = analysis.getAnalysisId();
+        this.dreamTitle = analysis.getDream().getTitle();
+        this.dreamContent = analysis.getDream().getContent();
         this.scenes = analysis.getDream().getScenes()
                 .stream().map(SceneResponse::new).toList();
         this.insight = analysis.getInsight();

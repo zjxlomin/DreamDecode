@@ -628,3 +628,10 @@ body {
     font-size: 0.9rem;
   }
 }
+
+.category-tag {
+    background-color: lightgrey;
+    max-width: max-content;
+    border-radius: 50px;
+    margin: 8px;
+}

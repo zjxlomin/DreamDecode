@@ -70,13 +70,51 @@ $(document).ready(function() {
         if (!dreamId) return;
 
         try {
-            const res = await fetch(`/api/dream/${dreamId}`);
+            const res = await fetch(`/api/dream/${dreamId}/analysis`);
             if (!res.ok) throw new Error('조회 실패');
             const data = await res.json();
 
-            $('#detailTitle').text(data.title || '');
-            $('#detailContent').text(data.content || '');
-            $('#detailAnalysis').text('분석 준비중');
+            $('#detailTitle').text(data.dreamTitle || '');
+            $('#detailContent').text(data.dreamContent || '');
+
+            if (data.scenes && data.scenes.length > 0) {
+                const html = data.scenes
+                    .map(item => `
+                        <div class="card h-100 dream-card" style="margin: 8px;">
+                            <div class="card-body" style="padding: 16px;">
+                                <h5 class="card-title">${item.content}</h5>
+                                <p class="card-text">= ${item.emotion}</p>
+                                <p class="card-text">${item.interpretation}</p>
+                            </div>
+                        </div>
+                    `)
+                    .join('');
+                $('#detailScenes').html(`${html}`);
+            } else {
+                $('#detailScenes').empty();
+            }
+
+            $('#detailInsight').text(data.insight || '');
+            $('#detailSuggestion').text(data.suggestion || '');
+
+            if (data.categories && data.categories.length > 0) {
+                const html = JSON.parse(data.categories)
+                    .map(cat => `<div class="col category-tag">${cat}</div>`)
+                    .join('');
+                $('#detailCategories').html(`${html}`);
+            } else {
+                $('#detailCategories').empty();
+            }
+
+            if (data.tags && data.tags.length > 0) {
+                const html = JSON.parse(data.tags)
+                    .map(tag => `<div class="col category-tag">${tag}</div>`)
+                    .join('');
+                $('#detailTags').html(`${html}`);
+            } else {
+                $('#detailTags').empty();
+            }
+
             $('#detailEmotion').text('-점');
             $('#detailPublished').text((data.published ? '공개' : '비공개'));
 
@@ -105,7 +143,7 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').addClass('d-none');
         $('#editTitle, #editContent').removeClass('d-none');
         $('#editPublishedWrap').removeClass('d-none');
-        $('#detailAnalysisWrap, #detailEmotionWrap').addClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').addClass('d-none');
         $('#editDreamBtn').addClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').removeClass('d-none');
     });
@@ -154,7 +192,7 @@ $(document).ready(function() {
             $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
             $('#editTitle, #editContent').addClass('d-none');
             $('#editPublishedWrap').addClass('d-none');
-            $('#detailAnalysisWrap, #detailEmotionWrap').removeClass('d-none');
+            $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
             $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
             $('#editDreamBtn').removeClass('d-none');
 
@@ -171,7 +209,7 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
         $('#editTitle, #editContent').addClass('d-none');
         $('#editPublishedWrap').addClass('d-none');
-        $('#detailAnalysisWrap, #detailEmotionWrap').removeClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
         $('#editDreamBtn').removeClass('d-none');
     });
