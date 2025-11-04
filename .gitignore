@@ -1,3 +1,5 @@
+# Ignore seed data file (keep out of VCS)
+src/main/resources/data.sql
 HELP.md
 .gradle
 build/

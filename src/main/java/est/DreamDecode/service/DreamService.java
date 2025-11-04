@@ -9,27 +9,67 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.springframework.boot.origin.Origin.from;
+
 @Service
 public class DreamService {
-  private DreamRepository dreamRepository;
+  private final DreamRepository dreamRepository;
+  private final NaturalLanguageService nlpService;
 
-  public DreamService(DreamRepository dreamRepository) {
+  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService) {
     this.dreamRepository = dreamRepository;
+    this.nlpService = nlpService;
   }
 
   public List<DreamResponse> getAllPublicDreams() {
-    List<DreamResponse> dreams = dreamRepository.findAllByIsPublicTrue().stream()
+    List<DreamResponse> dreams = dreamRepository.findAllByPublishedTrue().stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
   }
 
+  public List<DreamResponse> getDreamsByCategory(String category) {
+    List<DreamResponse> dreams = dreamRepository.findByCategoriesContaining(category).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public List<DreamResponse> getDreamsByTag(String tag) {
+    List<DreamResponse> dreams = dreamRepository.findByTagsContaining(tag).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public List<DreamResponse> getDreamsByTitle(String title) {
+    List<DreamResponse> dreams = dreamRepository.findByTitleContaining(title).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public DreamResponse getDreamById(Long id) {
+    Dream dream = dreamRepository.findById(id)
+                         .orElseThrow(() -> new RuntimeException("Dream not found with id " + id));
+    return DreamResponse.from(dream);
+  }
+
+  @Transactional
   public Dream saveDream(DreamRequest request) {
+    Dream dream = dreamRepository.save(request.toEntity());
+    // Alan api로 꿈 내용 전송
+    // String anlatext = request.getContent();
+    // Alan api에 alantext 전달
+    // Analysis analysis = 전송받은 json 엔티티로 변경하는 코드
+    String nlptext = "전송받은 json 에서 emotion_summary 추출";
+    nlpService.analyzeSentiment(nlptext);
+
     return dreamRepository.save(request.toEntity());
   }
 
   @Transactional
-  public Dream updateDream(Long dreamId, DreamRequest request) {
+  public DreamResponse updateDream(Long dreamId, DreamRequest request) {
     Dream dream = dreamRepository.findById(dreamId)
                           .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
 
@@ -43,9 +83,9 @@ public class DreamService {
     if (request.getUserId() != null) {
       dream.setUserId(request.getUserId());
     }
-    dream.setPublic(request.isPublic());
+    dream.setPublished(request.isPublished());
 
-    return dream;
+    return DreamResponse.from(dream);
   }
 
   public void deleteDream(Long dreamId) {
