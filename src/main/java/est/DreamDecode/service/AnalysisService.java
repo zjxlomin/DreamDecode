@@ -1,10 +1,13 @@
 package est.DreamDecode.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import est.DreamDecode.domain.Analysis;
 import est.DreamDecode.domain.Dream;
+import est.DreamDecode.domain.Scene;
 import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
+import est.DreamDecode.repository.SceneRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
@@ -14,24 +17,89 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AnalysisService {
     private final AnalysisRepository analysisRepository;
     private final DreamRepository dreamRepository;
+    private final SceneRepository sceneRepository;
 
-    public AnalysisResponse addAnalysis(Long dreamId){
+    @Transactional
+    public AnalysisResponse addOrUpdateAnalysis(Long dreamId, boolean isPost){
         Dream dream = dreamRepository.findById(dreamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        String dreamContent = dream.getContent();
-        String dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        double sentiment = 1.0;
 
-        Analysis analysis = new Analysis();
-        analysis.setAnalysisResult(dreamAnalysis);
-        analysis.setSentiment(sentiment);
-        analysis.setDream(dream);
-        return new AnalysisResponse(analysisRepository.save(analysis));
+        if(!isPost) {
+            sceneRepository.deleteByDreamId(dreamId); // 기존 장면 삭제 후 추가
+        }
+
+        String dreamContent = dream.getContent();
+        JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
+
+        List<Object> scenes = dreamAnalysis.getJSONArray("analysis").toList();
+        for(Object s : scenes){
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> map = mapper.convertValue(s, Map.class);
+            String content = map.get("scene");
+            String emotion = map.get("emotion");
+            String interpretation = map.get("interpretation");
+            Scene scene = new Scene();
+            scene.setContent(content);
+            scene.setEmotion(emotion);
+            scene.setInterpretation(interpretation);
+            scene.setDream(dream);
+            sceneRepository.save(scene);
+        }
+        String insight = dreamAnalysis.getString("insight");
+        String suggestion = dreamAnalysis.getString("suggestion");
+        String categories = dreamAnalysis.getJSONArray("categories").toString();
+        String tags = dreamAnalysis.getJSONArray("tags").toString();
+        String summary = dreamAnalysis.getString("summary");
+        double sentiment = 1.0; // TODO: 감정 점수 산출
+
+        /* categories, tags List<String>으로 변환 후
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            List<String> categoriesToList = mapper.readValue(categories, new TypeReference<List<String>>() {});
+            List<String> tagsToList = mapper.readValue(tags, new TypeReference<List<String>>() {});
+            for(String c : categoriesToList){
+                System.out.println(c);
+            }
+            for(String t : tagsToList){
+                System.out.println(t);
+            }
+        } catch(JsonProcessingException e) {
+
+        }
+        */
+
+        if(isPost) {
+            Analysis analysis = new Analysis();
+            analysis.setInsight(insight);
+            analysis.setSuggestion(suggestion);
+            analysis.setCategories(categories);
+            analysis.setTags(tags);
+            analysis.setSummary(summary);
+            analysis.setSentiment(sentiment);
+            analysis.setDream(dream);
+            return new AnalysisResponse(analysisRepository.save(analysis));
+        }
+        else {
+            Analysis analysis = getAnalysisByDreamId(dreamId);
+            analysis.updateAnalysis(
+                    insight,
+                    suggestion,
+                    categories,
+                    tags,
+                    summary,
+                    sentiment
+            );
+            return new AnalysisResponse(analysis);
+        }
+
     }
 
     public Analysis getAnalysisByDreamId(Long dreamId){
@@ -40,25 +108,8 @@ public class AnalysisService {
                 .toList().get(0);
     }
 
-    @Transactional
-    public Analysis updateAnalysis(Long dreamId){
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        String dreamContent = dream.getContent();
-        String dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-        double sentiment = 1.0; // TODO: 감정 점수 산출
-
-        Analysis analysis = getAnalysisByDreamId(dreamId);
-        analysis.updateAnalysis(dreamAnalysis, sentiment);
-
-        return analysis;
-    }
-
-    public void deleteAnalysisById(Long analysisId){
-        analysisRepository.deleteById(analysisId);
-    }
-
-    public String dreamAnalyzeByPython(String dreamContent){
+    // 프롬프트
+    public JSONObject dreamAnalyzeByPython(String dreamContent){
         String clientId = "515d3756-783e-484d-a04b-b7121c99fbb7";
 
         String prompt = """
@@ -76,9 +127,10 @@ public class AnalysisService {
                 
                 꿈의 주요 키워드를 기반으로 3~5개의 태그를 생성하세요.
                 
-                반드시 아래 JSON 형식으로 응답하세요.
-                JSON 키 이름은 analysis, scene, emotion, interpretation, overall_insight, suggestion, category, tags로 반드시 유지하고, 다른 키는 추가하지 마세요.
-                각 항목의 값은 자연스러운 문장으로 작성하되, 구조는 반드시 유지하세요.
+                마지막으로, 꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장으로 작성하세요.
+                
+                반드시 아래 JSON 형식의 구조를 지키면서 응답하세요.
+                JSON 키 이름은 analysis, scene, emotion, interpretation, insight, suggestion, categories, tags, summary로 반드시 유지하고, 다른 키는 추가하지 마세요.
                 
                 {{
                     "analysis": [
@@ -94,24 +146,27 @@ public class AnalysisService {
                         }},
                         ...
                     ],
-                    "overall_insight": "꿈 전체의 심리적 해석과 감정 경향 요약",
+                    "insight": "꿈 전체의 심리적 해석과 감정 경향 요약",
                     "suggestion": "감정을 다스리거나 회복하기 위한 조언",
-                    "category": ["주요 주제 카테고리들"],
-                    "tags": ["연관 태그들"]
+                    "categories": ["주요 주제 카테고리들"],
+                    "tags": ["연관 태그들"],
+                    "summary": "꿈 전반에 걸쳐 느껴지는 정서를 자연스럽게 풀어서 표현한 100자 미만의 문장"
                 }}
                 
                 꿈의 내용은 다음과 같습니다:
-                """ + dreamContent;
-        String result = singleAlanChat(clientId, prompt);
+                """
+                + dreamContent;
+
+        JSONObject result = singleAlanChat(clientId, prompt);
         resetAlanState(clientId);
         return result;
     }
 
-    private String singleAlanChat(String clientId, String content){
+    private JSONObject singleAlanChat(String clientId, String prompt){
         String url = "https://kdt-api-function.azurewebsites.net/api/v1/question";
         RestTemplate restTemplate = new RestTemplate();
 
-        String requestUrl = url + "?client_id=" + clientId + "&content=" + content;
+        String requestUrl = url + "?client_id=" + clientId + "&content=" + prompt;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -125,12 +180,15 @@ public class AnalysisService {
                 String.class
         );
 
-        // 응답 JSON 파싱
         try{
             JSONObject jsonResponse = new JSONObject(response.getBody());
-            return jsonResponse.getString("content");
+            String content = jsonResponse.getString("content");
+            content = content.replaceAll("(?s)```json\\s*", "")
+                    .replaceAll("(?s)```\\s*", "")
+                    .trim();
+            return new JSONObject(content);
         } catch(JSONException e){
-            return "Analyze failed";
+            return null;
         }
 
     }
