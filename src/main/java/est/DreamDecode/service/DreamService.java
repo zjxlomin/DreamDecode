@@ -26,6 +26,27 @@ public class DreamService {
     return dreams;
   }
 
+  public List<DreamResponse> getDreamsByCategory(String category) {
+    List<DreamResponse> dreams = dreamRepository.findByCategoriesContaining(category).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public List<DreamResponse> getDreamsByTag(String tag) {
+    List<DreamResponse> dreams = dreamRepository.findByTagsContaining(tag).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public List<DreamResponse> getDreamsByTitle(String title) {
+    List<DreamResponse> dreams = dreamRepository.findByTitleContaining(title).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
   public DreamResponse getDreamById(Long id) {
     Dream dream = dreamRepository.findById(id)
                          .orElseThrow(() -> new RuntimeException("Dream not found with id " + id));
