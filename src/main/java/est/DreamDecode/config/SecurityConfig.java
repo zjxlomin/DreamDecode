@@ -40,7 +40,7 @@ public class SecurityConfig {
                         // ✅ 인증 없이 접근 가능한 공개 API
                         .requestMatchers("/api/auth/**", "/api/users/signup", "/api/email/**", "/actuator/health").permitAll()
                         // 정적/루트
-                        .requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico", "/assets/**").permitAll()
+                        .requestMatchers("/", "/error", "/**", "/webjars/**", "/assets/**").permitAll()
                         // Preflight(OPTIONS) 전역 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 그 외엔 인증 필요
