@@ -143,7 +143,8 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').addClass('d-none');
         $('#editTitle, #editContent').removeClass('d-none');
         $('#editPublishedWrap').removeClass('d-none');
-        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').addClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').addClass('d-none');
+        $('#reAnalyzeBtn').addClass('d-none');
         $('#editDreamBtn').addClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').removeClass('d-none');
     });
@@ -170,8 +171,9 @@ $(document).ready(function() {
                 body: JSON.stringify({ title, content, published })
             });
             if(dreamRes.ok) {
-                if(true){
+                if(true){ // TODO: content 변경사항이 있을 때
                     document.getElementById("saveDreamBtn").disabled = true;
+                    document.getElementById("deleteDreamBtn").disabled = true;
                     alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
                     const analysisRes = await fetch(`api/dream/${dreamId}/analysis`, { method: 'PUT'});
                     if(!analysisRes.ok){
@@ -203,17 +205,20 @@ $(document).ready(function() {
             $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
             $('#editTitle, #editContent').addClass('d-none');
             $('#editPublishedWrap').addClass('d-none');
-            $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
+            $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
             $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
+            $('#reAnalyzeBtn').removeClass('d-none');
             $('#editDreamBtn').removeClass('d-none');
 
             alert('수정되었습니다.');
             document.getElementById("saveDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
             window.location.reload();
         } catch (e) {
             console.error(e);
             alert('오류가 발생했습니다: ' + (e.message || e));
             document.getElementById("saveDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
         }
     });
 
@@ -223,8 +228,9 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
         $('#editTitle, #editContent').addClass('d-none');
         $('#editPublishedWrap').addClass('d-none');
-        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestion, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
+        $('#reAnalyzeBtn').removeClass('d-none');
         $('#editDreamBtn').removeClass('d-none');
     });
 
@@ -279,6 +285,36 @@ $(document).ready(function() {
             }
         });
     }
+
+    // 재분석 (PUT)
+    $(document).on('click', '#reAnalyzeBtn', async function () {
+        const modalEl = document.getElementById('viewDreamModal');
+        const dreamId = modalEl?.dataset?.dreamId;
+        if (!dreamId) return;
+
+        try {
+            document.getElementById("reAnalyzeBtn").disabled = true;
+            document.getElementById("editDreamBtn").disabled = true;
+            document.getElementById("deleteDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+            const analysisRes = await fetch(`api/dream/${dreamId}/analysis`, { method: 'PUT'});
+            if(!analysisRes.ok){
+                const msg = await analysisRes.text();
+                throw new Error(msg || '분석 실패');
+            }
+            alert('꿈 분석이 완료되었습니다.');
+            document.getElementById("reAnalyzeBtn").disabled = false;
+            document.getElementById("editDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert('오류가 발생했습니다: ' + (e.message || e));
+            document.getElementById("reAnalyzeBtn").disabled = false;
+            document.getElementById("editDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
+        }
+    });
 
     // 검색 기능
     let currentSearchType = 'title';

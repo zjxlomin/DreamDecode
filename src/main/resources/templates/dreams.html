@@ -163,7 +163,9 @@
                     </div>
                     <div class="mb-3" id="detailScenesWrap">
                         <label class="form-label fw-bold">주요 장면 분석</label>
-                        <div id="detailScenes"></div>
+                        <div id="detailScenes">
+                            <!-- 장면 분석 목록 -->
+                        </div>
                     </div>
                     <div class="mb-3" id="detailInsightWrap">
                         <label class="form-label fw-bold">심리적 흐름 및 무의식적 메세지</label>
@@ -176,13 +178,17 @@
                     <div class="row mb-3 align-items-center" id="detailCategoriesWrap">
                         <label class="col-sm-2 col-form-label fw-bold mb-0">카테고리</label>
                         <div class="col">
-                            <div id="detailCategories" class="row"></div>
+                            <div id="detailCategories" class="row">
+                                <!-- 카테고리 목록 -->
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-3 align-items-center" id="detailTagsWrap">
                         <label class="col-sm-2 col-form-label fw-bold mb-0">태그</label>
                         <div class="col">
-                            <div id="detailTags" class="row"></div>
+                            <div id="detailTags" class="row">
+                                <!-- 태그 목록 -->
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-3 align-items-center">
@@ -205,6 +211,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="deleteDreamBtn">삭제하기</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="reAnalyzeBtn">다시 분석하기</button>
                     <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
                     <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
                     <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
