@@ -125,7 +125,10 @@ $(document).ready(function() {
 
             // 현재 dreamId 보관 및 모달 표시
             const modalEl = document.getElementById('viewDreamModal');
-            if (modalEl) modalEl.dataset.dreamId = String(data.dreamId);
+            if (modalEl) {
+                modalEl.dataset.dreamId = String(data.dreamId);
+                modalEl.dataset.dreamContent = String(data.dreamContent);
+            }
             if (modalEl && window.bootstrap) {
                 const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
@@ -155,6 +158,8 @@ $(document).ready(function() {
         const dreamId = modalEl?.dataset?.dreamId;
         if (!dreamId) return;
 
+        const prevContent = modalEl?.dataset?.dreamContent;
+
         const title = $('#editTitle').val()?.toString().trim();
         const content = $('#editContent').val()?.toString().trim();
         const published = $('#editPublished').is(':checked');
@@ -171,7 +176,7 @@ $(document).ready(function() {
                 body: JSON.stringify({ title, content, published })
             });
             if(dreamRes.ok) {
-                if(true){ // TODO: content 변경사항이 있을 때
+                if(content !== prevContent) {
                     document.getElementById("saveDreamBtn").disabled = true;
                     document.getElementById("deleteDreamBtn").disabled = true;
                     alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
