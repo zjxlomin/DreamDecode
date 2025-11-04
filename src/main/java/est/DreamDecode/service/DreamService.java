@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.springframework.boot.origin.Origin.from;
+
 @Service
 public class DreamService {
   private final DreamRepository dreamRepository;
@@ -67,7 +69,7 @@ public class DreamService {
   }
 
   @Transactional
-  public Dream updateDream(Long dreamId, DreamRequest request) {
+  public DreamResponse updateDream(Long dreamId, DreamRequest request) {
     Dream dream = dreamRepository.findById(dreamId)
                           .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
 
@@ -83,7 +85,7 @@ public class DreamService {
     }
     dream.setPublished(request.isPublished());
 
-    return dream;
+    return DreamResponse.from(dream);
   }
 
   public void deleteDream(Long dreamId) {

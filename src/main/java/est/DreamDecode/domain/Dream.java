@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -46,6 +48,12 @@ public class Dream {
 
   @Column(name = "published", nullable = false)
   private boolean published;
+
+    @OneToOne(mappedBy = "dream", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private Analysis analysis;
+
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Scene> scenes = new ArrayList<>();
 
   @Builder
   public Dream(Long userId, String title, String content, String categories, String tags, boolean published) {
