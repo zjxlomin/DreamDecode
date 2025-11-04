@@ -41,6 +41,27 @@ public class DreamController {
     return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
   }
 
+  // 카테고리로 조회
+  @GetMapping("/api/dream/category/{category}")
+  public ResponseEntity<List<DreamResponse>> getDreamsByCategory(@PathVariable("category") String category) {
+    List<DreamResponse> dreams = dreamService.getDreamsByCategory(category);
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  // 태그로 조회
+  @GetMapping("/api/dream/tag/{tag}")
+  public ResponseEntity<List<DreamResponse>> getDreamsByTag(@PathVariable("tag") String tag) {
+    List<DreamResponse> dreams = dreamService.getDreamsByTag(tag);
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  // 제목으로 조회
+  @GetMapping("/api/dream/title")
+  public ResponseEntity<List<DreamResponse>> getDreamsByTitle(@RequestParam("q") String title) {
+    List<DreamResponse> dreams = dreamService.getDreamsByTitle(title);
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
   // 단일 조회
   @GetMapping("/api/dream/{id}")
   public ResponseEntity<DreamResponse> getDream(@PathVariable("id") Long dreamId) {
