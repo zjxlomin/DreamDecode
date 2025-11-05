@@ -3,12 +3,13 @@ package est.DreamDecode.config;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -27,7 +28,7 @@ public class JwtTokenProvider {
                 .setSubject(String.valueOf(userId))      // sub
                 .setIssuedAt(now)                         // iat
                 .setExpiration(exp)                       // exp
-                .claim("email", email)                    // 커스텀 클레임
+                .claim("email", email)                     // 커스텀 클레임
                 .claim("typ", "AT")                       // 토큰 구분
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();

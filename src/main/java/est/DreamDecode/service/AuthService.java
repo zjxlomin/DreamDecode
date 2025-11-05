@@ -3,16 +3,18 @@ package est.DreamDecode.service;
 
 import est.DreamDecode.domain.RefreshToken;
 import est.DreamDecode.domain.User;
+import est.DreamDecode.exception.EmailNotVerifiedException;
 import est.DreamDecode.repository.RefreshTokenRepository;
 import est.DreamDecode.repository.UserRepository;
 import est.DreamDecode.config.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -33,10 +35,17 @@ public class AuthService {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
+        // ✅ 이메일 인증 여부 확인: emailVerifiedAt == null이면 인증 안 된 상태
+        if (user.getEmailVerifiedAt() == null) {
+            throw new EmailNotVerifiedException("이메일 인증이 필요합니다.");
+        }
+
         String at = jwt.createAccessToken(user.getId(), user.getEmail());
         String rt = jwt.createRefreshToken(user.getId());
 
+        // 기존 RT 제거 후 새 RT 저장
         refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
+        refreshTokenRepository.flush();
 
         RefreshToken token = RefreshToken.builder()
                 .user(user)
@@ -50,7 +59,6 @@ public class AuthService {
 
     @Transactional
     public Tokens refresh(String presentedRt) {
-        // 파싱 실패(만료/위조) 시 예외 던지면 컨트롤러에서 401로 변환
         Long userId = jwt.getUserId(presentedRt);
         User user = userRepository.findById(userId).orElseThrow();
 
@@ -74,14 +82,16 @@ public class AuthService {
 
     @Transactional
     public void logout(Long userId) {
-        userRepository.findById(userId).ifPresent(u -> refreshTokenRepository.deleteByUser(u));
+        userRepository.findById(userId)
+                .ifPresent(u -> refreshTokenRepository.deleteByUser(u));
     }
 
     /** 쿠키에서 받은 RT만으로도 로그아웃 가능하게 */
     @Transactional
     public void logoutByRefreshToken(String presentedRt) {
         Long userId = jwt.getUserId(presentedRt);
-        userRepository.findById(userId).ifPresent(u -> refreshTokenRepository.deleteByUser(u));
+        userRepository.findById(userId)
+                .ifPresent(u -> refreshTokenRepository.deleteByUser(u));
     }
 
     public record Tokens(String accessToken, String refreshToken) {}
