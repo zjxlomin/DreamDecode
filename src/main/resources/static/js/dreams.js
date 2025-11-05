@@ -1,5 +1,11 @@
 $(document).ready(function() {
 
+    // 페이지네이션 변수
+    let currentPage = 0;
+    let currentSearchType = 'title'; // 기본값: 제목 검색
+    let currentSearchQuery = '';
+    let isLoading = false;
+
     // Navbar shrink function
     function navbarShrink() {
         const $navbarCollapsible = $('#mainNav');
@@ -34,6 +40,103 @@ $(document).ready(function() {
     $responsiveNavItems.on('click', function() {
         if ($navbarToggler.is(':visible')) {
             $navbarToggler.trigger('click');
+        }
+    });
+
+    // 더보기 버튼 클릭
+    $(document).on('click', '#loadMoreBtn', async function() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        const $btn = $(this);
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>로딩 중...');
+        
+        try {
+            currentPage++;
+            let url = '';
+            
+            if (currentSearchQuery) {
+                // 검색 중인 경우
+                if (currentSearchType === 'title') {
+                    url = `/api/dream/title?q=${encodeURIComponent(currentSearchQuery)}&page=${currentPage}`;
+                } else if (currentSearchType === 'category') {
+                    url = `/api/dream/category/${encodeURIComponent(currentSearchQuery)}?page=${currentPage}`;
+                } else if (currentSearchType === 'tag') {
+                    url = `/api/dream/tag/${encodeURIComponent(currentSearchQuery)}?page=${currentPage}`;
+                }
+            } else {
+                // 전체 조회
+                url = `/api/dream?page=${currentPage}`;
+            }
+            
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('로딩 실패');
+            const data = await res.json();
+            
+            // Page 객체에서 content 추출
+            const dreams = data.content || [];
+            const hasNext = data.hasNext || false;
+            
+            if (dreams.length === 0) {
+                $('#loadMoreContainer').hide();
+                $btn.prop('disabled', false).html(originalText);
+                return;
+            }
+            
+            // 새로운 카드 추가
+            const $container = $('#dreamsContainer');
+            dreams.forEach(dream => {
+                let categoriesHtml = '';
+                if (dream.categories && dream.categories.length > 0) {
+                    categoriesHtml = '<div class="dream-meta mb-2">';
+                    categoriesHtml += '<div class="dream-categories">';
+                    dream.categories.forEach(category => {
+                        categoriesHtml += `<span class="category-badge">${escapeHtml(category)}</span>`;
+                    });
+                    categoriesHtml += '</div></div>';
+                }
+                
+                let tagsHtml = '';
+                if (dream.tags && dream.tags.length > 0) {
+                    tagsHtml = '<div class="dream-tags mt-3">';
+                    dream.tags.forEach(tag => {
+                        tagsHtml += `<button type="button" class="tag-btn">#${escapeHtml(tag)}</button>`;
+                    });
+                    tagsHtml += '</div>';
+                }
+                
+                const cardHtml = `
+                    <div class="col-md-4">
+                        <div class="card h-100 dream-card" data-dream-id="${dream.id}">
+                            <div class="card-body">
+                                <h5 class="card-title">${escapeHtml(dream.title || '')}</h5>
+                                ${categoriesHtml}
+                                <p class="card-text">${escapeHtml(dream.content || '')}</p>
+                                ${tagsHtml}
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $container.append(cardHtml);
+            });
+            
+            // 더보기 버튼 표시/숨김
+            if (!hasNext) {
+                $('#loadMoreContainer').hide();
+            }
+            
+            $btn.prop('disabled', false).html(originalText);
+        } catch (e) {
+            console.error(e);
+            alert('더보기 로딩 중 오류가 발생했습니다.');
+            $btn.prop('disabled', false).html(originalText);
+            currentPage--; // 페이지 롤백
+        } finally {
+            isLoading = false;
         }
     });
 
@@ -217,10 +320,6 @@ $(document).ready(function() {
         });
     }
 
-    // 검색 기능
-    let currentSearchType = 'title';
-    let currentSearchQuery = '';
-
     // 검색 탭 전환
     $('.search-tab').on('click', function() {
         $('.search-tab').removeClass('active');
@@ -245,28 +344,35 @@ $(document).ready(function() {
         }
 
         currentSearchQuery = query;
+        currentPage = 0; // 검색 시 페이지 초기화
         const $container = $('#dreamsContainer');
         
         // 로딩 표시
         $container.html('<div class="col-12"><div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">검색 중...</p></div></div>');
+        $('#loadMoreContainer').hide();
 
         try {
             let url = '';
             if (currentSearchType === 'title') {
-                url = `/api/dream/title?q=${encodeURIComponent(query)}`;
+                url = `/api/dream/title?q=${encodeURIComponent(query)}&page=0`;
             } else if (currentSearchType === 'category') {
-                url = `/api/dream/category/${encodeURIComponent(query)}`;
+                url = `/api/dream/category/${encodeURIComponent(query)}?page=0`;
             } else if (currentSearchType === 'tag') {
-                url = `/api/dream/tag/${encodeURIComponent(query)}`;
+                url = `/api/dream/tag/${encodeURIComponent(query)}?page=0`;
             }
 
             const res = await fetch(url);
             if (!res.ok) throw new Error('검색 실패');
-            const dreams = await res.json();
+            const data = await res.json();
+            
+            // Page 객체에서 content 추출
+            const dreams = data.content || [];
+            const hasNext = data.hasNext || false;
 
             // 결과 표시
             if (dreams.length === 0) {
                 $container.html(`<div class="col-12"><div class="search-results-message no-results">검색 결과가 없습니다.</div></div>`);
+                $('#loadMoreContainer').hide();
             } else {
                 let html = '';
                 dreams.forEach(dream => {
@@ -306,6 +412,13 @@ $(document).ready(function() {
                     `;
                 });
                 $container.html(html);
+                
+                // 더보기 버튼 표시/숨김
+                if (hasNext) {
+                    $('#loadMoreContainer').show();
+                } else {
+                    $('#loadMoreContainer').hide();
+                }
             }
 
             // 초기화 버튼 표시
@@ -313,6 +426,7 @@ $(document).ready(function() {
         } catch (e) {
             console.error(e);
             $container.html(`<div class="col-12"><div class="search-results-message no-results">검색 중 오류가 발생했습니다.</div></div>`);
+            $('#loadMoreContainer').hide();
         }
     }
 
@@ -330,6 +444,8 @@ $(document).ready(function() {
     $('#resetBtn').on('click', function() {
         $('#searchInput').val('');
         currentSearchQuery = '';
+        currentSearchType = 'title';
+        currentPage = 0;
         $(this).addClass('d-none');
         window.location.reload();
     });
