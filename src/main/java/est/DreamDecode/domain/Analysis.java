@@ -25,12 +25,6 @@ public class Analysis {
     @Column(name = "suggestion", nullable = false)
     private String suggestion;
 
-    @Column(name = "categories", nullable = false)
-    private String categories;
-
-    @Column(name = "tags", nullable = false)
-    private String tags;
-
     @Column(name = "summary", nullable = false)
     private String summary;
 
@@ -52,15 +46,11 @@ public class Analysis {
     public void updateAnalysis(
             String insight,
             String suggestion,
-            String categories,
-            String tags,
             String summary,
             double sentiment
     ) {
         this.insight = insight;
         this.suggestion = suggestion;
-        this.categories = categories;
-        this.tags = tags;
         this.summary = summary;
         this.sentiment = sentiment;
     }

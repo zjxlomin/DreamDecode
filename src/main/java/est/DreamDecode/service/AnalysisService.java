@@ -80,11 +80,10 @@ public class AnalysisService {
             Analysis analysis = new Analysis();
             analysis.setInsight(insight);
             analysis.setSuggestion(suggestion);
-            analysis.setCategories(categories);
-            analysis.setTags(tags);
             analysis.setSummary(summary);
             analysis.setSentiment(sentiment);
             analysis.setDream(dream);
+            dream.updateCatAndTags(categories, tags);
             return new AnalysisResponse(analysisRepository.save(analysis));
         }
         else {
@@ -92,11 +91,10 @@ public class AnalysisService {
             analysis.updateAnalysis(
                     insight,
                     suggestion,
-                    categories,
-                    tags,
                     summary,
                     sentiment
             );
+            dream.updateCatAndTags(categories, tags);
             return new AnalysisResponse(analysis);
         }
 

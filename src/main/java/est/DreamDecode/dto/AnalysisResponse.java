@@ -33,8 +33,8 @@ public class AnalysisResponse {
                 .stream().map(SceneResponse::new).toList();
         this.insight = analysis.getInsight();
         this.suggestion = analysis.getSuggestion();
-        this.categories = analysis.getCategories();
-        this.tags = analysis.getTags();
+        this.categories = analysis.getDream().getCategories();
+        this.tags = analysis.getDream().getTags();
         this.summary = analysis.getSummary();
         this.sentiment = analysis.getSentiment();
         this.createdAt = analysis.getCreatedAt();
