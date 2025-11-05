@@ -11,16 +11,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DreamService {
   private final DreamRepository dreamRepository;
   private final NaturalLanguageService nlpService;
+  private final AnalysisService analysisService;
   private static final int PAGE_SIZE = 9;
 
-  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService) {
+  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService,  AnalysisService analysisService) {
     this.dreamRepository = dreamRepository;
     this.nlpService = nlpService;
+      this.analysisService = analysisService;
   }
 
   public List<DreamResponse> getAllPublicDreams() {
@@ -83,6 +86,10 @@ public class DreamService {
 
   public Dream saveDream(DreamRequest request) {
     Dream dream = dreamRepository.save(request.toEntity());
+
+    Long dreamId = dream.getId();
+    analysisService.addOrUpdateAnalysis(dreamId, true);
+
     // Alan api로 꿈 내용 전송
     // String anlatext = request.getContent();
     // Alan api에 alantext 전달
@@ -98,6 +105,8 @@ public class DreamService {
     Dream dream = dreamRepository.findById(dreamId)
                           .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
 
+    boolean contentUpdated = !dream.getContent().equals(request.getContent());
+
     // DTO에서 가져온 값으로 엔티티 업데이트
     if (request.getTitle() != null) {
       dream.setTitle(request.getTitle());
@@ -109,6 +118,10 @@ public class DreamService {
       dream.setUserId(request.getUserId());
     }
     dream.setPublished(request.isPublished());
+
+    if(contentUpdated) {
+        analysisService.addOrUpdateAnalysis(dreamId, false);
+    }
 
     return DreamResponse.from(dream);
   }
