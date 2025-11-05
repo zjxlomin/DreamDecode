@@ -64,4 +64,9 @@ public class Dream {
     this.tags = tags;
     this.published = published;
   }
+
+  public void updateCatAndTags(String categories, String tags){
+      this.categories = categories;
+      this.tags = tags;
+  }
 }

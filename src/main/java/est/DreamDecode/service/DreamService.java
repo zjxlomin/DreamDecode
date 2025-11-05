@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.boot.origin.Origin.from;
 
@@ -15,10 +16,12 @@ import static org.springframework.boot.origin.Origin.from;
 public class DreamService {
   private final DreamRepository dreamRepository;
   private final NaturalLanguageService nlpService;
+    private final AnalysisService analysisService;
 
-  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService) {
+  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService,  AnalysisService analysisService) {
     this.dreamRepository = dreamRepository;
     this.nlpService = nlpService;
+      this.analysisService = analysisService;
   }
 
   public List<DreamResponse> getAllPublicDreams() {
@@ -58,6 +61,10 @@ public class DreamService {
   @Transactional
   public Dream saveDream(DreamRequest request) {
     Dream dream = dreamRepository.save(request.toEntity());
+
+    Long dreamId = dream.getId();
+    analysisService.addOrUpdateAnalysis(dreamId, true);
+
     // Alan api로 꿈 내용 전송
     // String anlatext = request.getContent();
     // Alan api에 alantext 전달
@@ -65,13 +72,15 @@ public class DreamService {
     String nlptext = "전송받은 json 에서 emotion_summary 추출";
     nlpService.analyzeSentiment(nlptext);
 
-    return dreamRepository.save(request.toEntity());
+    return dream;
   }
 
   @Transactional
   public DreamResponse updateDream(Long dreamId, DreamRequest request) {
     Dream dream = dreamRepository.findById(dreamId)
                           .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
+
+    boolean contentUpdated = !dream.getContent().equals(request.getContent());
 
     // DTO에서 가져온 값으로 엔티티 업데이트
     if (request.getTitle() != null) {
@@ -84,6 +93,10 @@ public class DreamService {
       dream.setUserId(request.getUserId());
     }
     dream.setPublished(request.isPublished());
+
+    if(contentUpdated) {
+        analysisService.addOrUpdateAnalysis(dreamId, false);
+    }
 
     return DreamResponse.from(dream);
   }

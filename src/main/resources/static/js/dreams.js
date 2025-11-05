@@ -70,24 +70,65 @@ $(document).ready(function() {
         if (!dreamId) return;
 
         try {
-            const res = await fetch(`/api/dream/${dreamId}`);
+            const res = await fetch(`/api/dream/${dreamId}/analysis`);
             if (!res.ok) throw new Error('조회 실패');
             const data = await res.json();
 
-            $('#detailTitle').text(data.title || '');
-            $('#detailContent').text(data.content || '');
-            $('#detailAnalysis').text('분석 준비중');
-            $('#detailEmotion').text('-점');
-            $('#detailPublished').text((data.published ? '공개' : '비공개'));
+            $('#detailTitle').text(data.dreamTitle || '');
+            $('#detailContent').text(data.dreamContent || '');
+
+            if (data.scenes && data.scenes.length > 0) {
+                const html = data.scenes
+                    .map(item => `
+                        <div class="card h-100 dream-card" style="margin: 8px;">
+                            <div class="card-body" style="padding: 16px;">
+                                <h5 class="card-title">${item.content}</h5>
+                                <p class="card-text">= ${item.emotion}</p>
+                                <p class="card-text">${item.interpretation}</p>
+                            </div>
+                        </div>
+                    `)
+                    .join('');
+                $('#detailScenes').html(`${html}`);
+            } else {
+                $('#detailScenes').empty();
+            }
+
+            $('#detailInsight').text(data.insight || '');
+            $('#detailSuggestion').text(data.suggestion || '');
+
+            if (data.categories && data.categories.length > 0) {
+                const html = JSON.parse(data.categories)
+                    .map(cat => `<div class="col category-tag">${cat}</div>`)
+                    .join('');
+                $('#detailCategories').html(`${html}`);
+            } else {
+                $('#detailCategories').empty();
+            }
+
+            if (data.tags && data.tags.length > 0) {
+                const html = JSON.parse(data.tags)
+                    .map(tag => `<div class="col category-tag">${tag}</div>`)
+                    .join('');
+                $('#detailTags').html(`${html}`);
+            } else {
+                $('#detailTags').empty();
+            }
+
+            $('#detailEmotion').text(data.sentiment + '점');
+            $('#detailPublished').text((data.dreamPublished ? '공개' : '비공개'));
 
             // 편집용 값 세팅
-            $('#editTitle').val(data.title || '');
-            $('#editContent').val(data.content || '');
-            $('#editPublished').prop('checked', !!data.published);
+            $('#editTitle').val(data.dreamTitle || '');
+            $('#editContent').val(data.dreamContent || '');
+            $('#editPublished').prop('checked', !!data.dreamPublished);
 
             // 현재 dreamId 보관 및 모달 표시
             const modalEl = document.getElementById('viewDreamModal');
-            if (modalEl) modalEl.dataset.dreamId = String(data.id);
+            if (modalEl) {
+                modalEl.dataset.dreamId = String(data.dreamId);
+                modalEl.dataset.dreamContent = String(data.dreamContent);
+            }
             if (modalEl && window.bootstrap) {
                 const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
@@ -105,7 +146,8 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').addClass('d-none');
         $('#editTitle, #editContent').removeClass('d-none');
         $('#editPublishedWrap').removeClass('d-none');
-        $('#detailAnalysisWrap, #detailEmotionWrap').addClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').addClass('d-none');
+        $('#reAnalyzeBtn').addClass('d-none');
         $('#editDreamBtn').addClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').removeClass('d-none');
     });
@@ -116,6 +158,8 @@ $(document).ready(function() {
         const dreamId = modalEl?.dataset?.dreamId;
         if (!dreamId) return;
 
+        const prevContent = modalEl?.dataset?.dreamContent;
+
         const title = $('#editTitle').val()?.toString().trim();
         const content = $('#editContent').val()?.toString().trim();
         const published = $('#editPublished').is(':checked');
@@ -125,13 +169,19 @@ $(document).ready(function() {
             return;
         }
 
+        if(content !== prevContent) {
+            document.getElementById("saveDreamBtn").disabled = true;
+            document.getElementById("deleteDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+        }
+
         try {
-            const res = await fetch(`/api/dream/${dreamId}`, {
+            const dreamRes = await fetch(`/api/dream/${dreamId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, content, published })
             });
-            if (!res.ok) throw new Error('수정 실패');
+            if(!dreamRes.ok) throw new Error('수정 실패');
             let updated;
             try {
                 updated = await res.json();
@@ -154,14 +204,20 @@ $(document).ready(function() {
             $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
             $('#editTitle, #editContent').addClass('d-none');
             $('#editPublishedWrap').addClass('d-none');
-            $('#detailAnalysisWrap, #detailEmotionWrap').removeClass('d-none');
+            $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
             $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
+            $('#reAnalyzeBtn').removeClass('d-none');
             $('#editDreamBtn').removeClass('d-none');
 
             alert('수정되었습니다.');
+            document.getElementById("saveDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
+            window.location.reload();
         } catch (e) {
             console.error(e);
             alert('오류가 발생했습니다: ' + (e.message || e));
+            document.getElementById("saveDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
         }
     });
 
@@ -171,8 +227,9 @@ $(document).ready(function() {
         $('#detailTitle, #detailContent, #detailPublished').removeClass('d-none');
         $('#editTitle, #editContent').addClass('d-none');
         $('#editPublishedWrap').addClass('d-none');
-        $('#detailAnalysisWrap, #detailEmotionWrap').removeClass('d-none');
+        $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap').removeClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
+        $('#reAnalyzeBtn').removeClass('d-none');
         $('#editDreamBtn').removeClass('d-none');
     });
 
@@ -189,15 +246,17 @@ $(document).ready(function() {
                 return;
             }
 
+            document.getElementById("submitDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+
             try {
-                const res = await fetch('/api/dream', {
+                const dreamRes = await fetch('/api/dream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, content, published })
                 });
-
-                if (!res.ok) {
-                    const msg = await res.text();
+                if (!dreamRes.ok) {
+                    const msg = await dreamRes.text();
                     throw new Error(msg || '등록 실패');
                 }
 
@@ -209,13 +268,45 @@ $(document).ready(function() {
                 }
                 $('#createDreamForm')[0].reset();
                 alert('꿈이 등록되었습니다.');
+                document.getElementById("submitDreamBtn").disabled = false;
                 window.location.reload();
             } catch (e) {
+                document.getElementById("submitDreamBtn").disabled = false;
                 console.error(e);
                 alert('오류가 발생했습니다: ' + (e.message || e));
             }
         });
     }
+
+    // 재분석 (PUT)
+    $(document).on('click', '#reAnalyzeBtn', async function () {
+        const modalEl = document.getElementById('viewDreamModal');
+        const dreamId = modalEl?.dataset?.dreamId;
+        if (!dreamId) return;
+
+        try {
+            document.getElementById("reAnalyzeBtn").disabled = true;
+            document.getElementById("editDreamBtn").disabled = true;
+            document.getElementById("deleteDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+            const analysisRes = await fetch(`api/dream/${dreamId}/analysis`, { method: 'PUT'});
+            if(!analysisRes.ok){
+                const msg = await analysisRes.text();
+                throw new Error(msg || '분석 실패');
+            }
+            alert('꿈 분석이 완료되었습니다.');
+            document.getElementById("reAnalyzeBtn").disabled = false;
+            document.getElementById("editDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert('오류가 발생했습니다: ' + (e.message || e));
+            document.getElementById("reAnalyzeBtn").disabled = false;
+            document.getElementById("editDreamBtn").disabled = false;
+            document.getElementById("deleteDreamBtn").disabled = false;
+        }
+    });
 
     // 검색 기능
     let currentSearchType = 'title';
