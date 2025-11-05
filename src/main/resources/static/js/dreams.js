@@ -169,25 +169,19 @@ $(document).ready(function() {
             return;
         }
 
+        if(content !== prevContent) {
+            document.getElementById("saveDreamBtn").disabled = true;
+            document.getElementById("deleteDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+        }
+
         try {
             const dreamRes = await fetch(`/api/dream/${dreamId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, content, published })
             });
-            if(dreamRes.ok) {
-                if(content !== prevContent) {
-                    document.getElementById("saveDreamBtn").disabled = true;
-                    document.getElementById("deleteDreamBtn").disabled = true;
-                    alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
-                    const analysisRes = await fetch(`api/dream/${dreamId}/analysis`, { method: 'PUT'});
-                    if(!analysisRes.ok){
-                        const msg = await analysisRes.text();
-                        throw new Error(msg || '분석 실패');
-                    }
-                }
-            }
-            else throw new Error('수정 실패');
+            if(!dreamRes.ok) throw new Error('수정 실패');
             let updated;
             try {
                 updated = await res.json();
@@ -252,24 +246,16 @@ $(document).ready(function() {
                 return;
             }
 
+            document.getElementById("submitDreamBtn").disabled = true;
+            alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
+
             try {
                 const dreamRes = await fetch('/api/dream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, content, published })
                 });
-                if (dreamRes.ok) {
-                    document.getElementById("submitDreamBtn").disabled = true;
-                    const data = await dreamRes.json();
-                    alert("꿈을 분석 중입니다. 잠시만 기다려 주세요..");
-                    const analysisRes = await fetch(`api/dream/${data.id}/analysis`, { method: 'POST'});
-                    if(!analysisRes.ok){
-                        document.getElementById("submitDreamBtn").disabled = false;
-                        const msg = await analysisRes.text();
-                        throw new Error(msg || '분석 실패');
-                    }
-                }
-                else {
+                if (!dreamRes.ok) {
                     const msg = await dreamRes.text();
                     throw new Error(msg || '등록 실패');
                 }
@@ -285,6 +271,7 @@ $(document).ready(function() {
                 document.getElementById("submitDreamBtn").disabled = false;
                 window.location.reload();
             } catch (e) {
+                document.getElementById("submitDreamBtn").disabled = false;
                 console.error(e);
                 alert('오류가 발생했습니다: ' + (e.message || e));
             }
