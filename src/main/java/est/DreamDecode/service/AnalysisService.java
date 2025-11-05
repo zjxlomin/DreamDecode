@@ -5,6 +5,7 @@ import est.DreamDecode.domain.Analysis;
 import est.DreamDecode.domain.Dream;
 import est.DreamDecode.domain.Scene;
 import est.DreamDecode.dto.AnalysisResponse;
+import est.DreamDecode.dto.SentimentResult;
 import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
 import est.DreamDecode.repository.SceneRepository;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,12 +58,22 @@ public class AnalysisService {
         }
         String insight = dreamAnalysis.getString("insight");
         String suggestion = dreamAnalysis.getString("suggestion");
-        String categories = dreamAnalysis.getJSONArray("categories").toString();
-        String tags = dreamAnalysis.getJSONArray("tags").toString();
+        
+        // JSON 배열을 쉼표로 구분된 문자열로 변환 (괄호 제거)
+        List<Object> categoriesList = dreamAnalysis.getJSONArray("categories").toList();
+        String categories = categoriesList.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+        
+        List<Object> tagsList = dreamAnalysis.getJSONArray("tags").toList();
+        String tags = tagsList.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+        
         String summary = dreamAnalysis.getString("summary");
         
         // GCP Natural Language API를 사용하여 꿈 내용의 실제 감정 분석 수행
-        est.DreamDecode.dto.SentimentResult sentimentResult = naturalLanguageService.analyzeSentiment(dreamContent);
+        SentimentResult sentimentResult = naturalLanguageService.analyzeSentiment(summary);
         double sentiment = sentimentResult.getScore();
         double magnitude = sentimentResult.getMagnitude();
 
