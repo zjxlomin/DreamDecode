@@ -4,17 +4,19 @@ import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
 import est.DreamDecode.repository.DreamRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.springframework.boot.origin.Origin.from;
-
 @Service
 public class DreamService {
   private final DreamRepository dreamRepository;
   private final NaturalLanguageService nlpService;
+  private static final int PAGE_SIZE = 9;
 
   public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService) {
     this.dreamRepository = dreamRepository;
@@ -28,11 +30,23 @@ public class DreamService {
     return dreams;
   }
 
+  public Page<DreamResponse> getAllPublicDreams(int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByPublishedTrueOrderByCreatedAtDesc(pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
   public List<DreamResponse> getDreamsByCategory(String category) {
     List<DreamResponse> dreams = dreamRepository.findByCategoriesContaining(category).stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
+  }
+
+  public Page<DreamResponse> getDreamsByCategory(String category, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByCategoriesContaining(category, pageable);
+    return dreamPage.map(DreamResponse::from);
   }
 
   public List<DreamResponse> getDreamsByTag(String tag) {
@@ -42,11 +56,23 @@ public class DreamService {
     return dreams;
   }
 
+  public Page<DreamResponse> getDreamsByTag(String tag, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByTagsContaining(tag, pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
   public List<DreamResponse> getDreamsByTitle(String title) {
     List<DreamResponse> dreams = dreamRepository.findByTitleContaining(title).stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
+  }
+
+  public Page<DreamResponse> getDreamsByTitle(String title, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByTitleContaining(title, pageable);
+    return dreamPage.map(DreamResponse::from);
   }
 
   public DreamResponse getDreamById(Long id) {
@@ -55,7 +81,6 @@ public class DreamService {
     return DreamResponse.from(dream);
   }
 
-  @Transactional
   public Dream saveDream(DreamRequest request) {
     Dream dream = dreamRepository.save(request.toEntity());
     // Alan api로 꿈 내용 전송
@@ -65,7 +90,7 @@ public class DreamService {
     String nlptext = "전송받은 json 에서 emotion_summary 추출";
     nlpService.analyzeSentiment(nlptext);
 
-    return dreamRepository.save(request.toEntity());
+    return dream;
   }
 
   @Transactional
@@ -90,5 +115,21 @@ public class DreamService {
 
   public void deleteDream(Long dreamId) {
     dreamRepository.deleteById(dreamId);
+  }
+
+  // 현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, 페이지네이션)
+  public Page<DreamResponse> getMyDreams(Long userId, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
+
+  //  현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, 전체 목록)
+  public List<DreamResponse> getMyDreams(Long userId) {
+    List<Dream> dreams = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, Pageable.unpaged()).getContent();
+    return dreams.stream()
+                 .map(DreamResponse::from)
+                 .toList();
   }
 }
