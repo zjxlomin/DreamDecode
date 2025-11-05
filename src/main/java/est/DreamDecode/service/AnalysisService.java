@@ -26,6 +26,7 @@ public class AnalysisService {
     private final AnalysisRepository analysisRepository;
     private final DreamRepository dreamRepository;
     private final SceneRepository sceneRepository;
+    private final NaturalLanguageService naturalLanguageService;
 
     @Transactional
     public AnalysisResponse addOrUpdateAnalysis(Long dreamId, boolean isPost){
@@ -58,7 +59,11 @@ public class AnalysisService {
         String categories = dreamAnalysis.getJSONArray("categories").toString();
         String tags = dreamAnalysis.getJSONArray("tags").toString();
         String summary = dreamAnalysis.getString("summary");
-        double sentiment = 1.0; // TODO: 감정 점수 산출
+        
+        // GCP Natural Language API를 사용하여 꿈 내용의 실제 감정 분석 수행
+        est.DreamDecode.dto.SentimentResult sentimentResult = naturalLanguageService.analyzeSentiment(dreamContent);
+        double sentiment = sentimentResult.getScore();
+        double magnitude = sentimentResult.getMagnitude();
 
         /* categories, tags List<String>으로 변환 후
         try{
@@ -82,6 +87,7 @@ public class AnalysisService {
             analysis.setSuggestion(suggestion);
             analysis.setSummary(summary);
             analysis.setSentiment(sentiment);
+            analysis.setMagnitude(magnitude);
             analysis.setDream(dream);
             dream.updateCatAndTags(categories, tags);
             return new AnalysisResponse(analysisRepository.save(analysis));
@@ -92,7 +98,8 @@ public class AnalysisService {
                     insight,
                     suggestion,
                     summary,
-                    sentiment
+                    sentiment,
+                    magnitude
             );
             dream.updateCatAndTags(categories, tags);
             return new AnalysisResponse(analysis);

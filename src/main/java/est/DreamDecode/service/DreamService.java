@@ -1,6 +1,7 @@
 package est.DreamDecode.service;
 
 import est.DreamDecode.domain.Dream;
+import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
 import est.DreamDecode.repository.DreamRepository;
@@ -88,14 +89,7 @@ public class DreamService {
     Dream dream = dreamRepository.save(request.toEntity());
 
     Long dreamId = dream.getId();
-    analysisService.addOrUpdateAnalysis(dreamId, true);
-
-    // Alan api로 꿈 내용 전송
-    // String anlatext = request.getContent();
-    // Alan api에 alantext 전달
-    // Analysis analysis = 전송받은 json 엔티티로 변경하는 코드
-    String nlptext = "전송받은 json 에서 emotion_summary 추출";
-    nlpService.analyzeSentiment(nlptext);
+    analysisService.addOrUpdateAnalysis(dreamId, true); // Alan api로 꿈 내용 전송 및 NLP 감정 분석 수행
 
     return dream;
   }
