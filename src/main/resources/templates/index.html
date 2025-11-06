@@ -1,45 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Dream Decode</title>
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" th:href="@{/images/favicon.ico}" />
-
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
-
-    <!-- Bootstrap 5.3.3 (CSS) -->
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-            crossorigin="anonymous"
-    >
-
-    <!-- Custom CSS -->
-    <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}" />
-    <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}" />
-</head>
-<body id="page-top">
-<!-- Navigation -->
-<div th:replace="fragments/nav :: nav"></div>
-
-<!-- Masthead-->
-<header class="masthead">
-    <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
-        <div class="d-flex justify-content-center">
-            <div class="text-center">
-                <h1 class="mx-auto my-0 text-uppercase">Dream Decode</h1>
-                <h2 class="text-white-50 mx-auto mt-2 mb-5">"Decode the meaning behind your dreams."</h2>
-                <a class="btn btn-primary" href="#about">Get Started</a>
-            </div>
-        </div>
-    </div><!DOCTYPE html>
-    <html lang="en" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -65,44 +25,8 @@
         <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}" />
     </head>
     <body id="page-top">
-    <!-- Navigation-->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-        <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="/" th:href="@{/}">Dream Decode</a>
-            <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                Menu
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ms-auto">
-
-                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#projects">Dream List</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#resources">Resources</a></li>
-
-                    <!-- ✅ 로그인하지 않은 경우 -->
-                    <li class="nav-item ms-3" id="navLogin">
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">로그인</a>
-                    </li>
-                    <li class="nav-item" id="navSignup">
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#signupModal">회원가입</a>
-                    </li>
-
-                    <!-- ✅ 로그인한 경우 -->
-                    <li class="nav-item d-none" id="navMyPage">
-                        <a class="nav-link" href="/profile" th:href="@{/profile}">My Page</a>
-                    </li>
-                    <li class="nav-item d-none" id="navLogout">
-                        <a class="nav-link" href="#" id="logoutLink">로그아웃</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+    <!-- Navigation -->
+    <div th:replace="fragments/nav :: nav"></div>
 
     <!-- Masthead-->
     <header class="masthead">
