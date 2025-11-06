@@ -1,6 +1,5 @@
 package est.DreamDecode.controller;
 
-import com.google.cloud.language.v1.Sentiment;
 import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
@@ -8,12 +7,11 @@ import est.DreamDecode.dto.SentimentResult;
 import est.DreamDecode.service.DreamService;
 import est.DreamDecode.service.NaturalLanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 public class DreamController {
@@ -28,38 +26,47 @@ public class DreamController {
 
   @GetMapping("/dream")
   public String getPublicDreams(Model model) {
-    List<DreamResponse> dreams = dreamService.getAllPublicDreams();
-    model.addAttribute("dreams", dreams);
+    // 초기 로드는 첫 페이지(9개)만
+    Page<DreamResponse> dreamPage = dreamService.getAllPublicDreams(0);
+    model.addAttribute("dreams", dreamPage.getContent());
+    model.addAttribute("hasMore", dreamPage.hasNext());
 
     return "dreams";
   }
 
-  // 전체 조회
+  // 전체 조회 (페이지네이션)
   @GetMapping("/api/dream")
-  public ResponseEntity<List<DreamResponse>> getPublicDreams() {
-    List<DreamResponse> dreams = dreamService.getAllPublicDreams();
-    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  public ResponseEntity<Page<DreamResponse>> getPublicDreams(
+      @RequestParam(value = "page", defaultValue = "0") int page) {
+    Page<DreamResponse> dreamPage = dreamService.getAllPublicDreams(page);
+    return ResponseEntity.ok(dreamPage); // 200 OK + JSON 반환
   }
 
-  // 카테고리로 조회
+  // 카테고리로 조회 (페이지네이션)
   @GetMapping("/api/dream/category/{category}")
-  public ResponseEntity<List<DreamResponse>> getDreamsByCategory(@PathVariable("category") String category) {
-    List<DreamResponse> dreams = dreamService.getDreamsByCategory(category);
-    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  public ResponseEntity<Page<DreamResponse>> getDreamsByCategory(
+      @PathVariable("category") String category,
+      @RequestParam(value = "page", defaultValue = "0") int page) {
+    Page<DreamResponse> dreamPage = dreamService.getDreamsByCategory(category, page);
+    return ResponseEntity.ok(dreamPage); // 200 OK + JSON 반환
   }
 
-  // 태그로 조회
+  // 태그로 조회 (페이지네이션)
   @GetMapping("/api/dream/tag/{tag}")
-  public ResponseEntity<List<DreamResponse>> getDreamsByTag(@PathVariable("tag") String tag) {
-    List<DreamResponse> dreams = dreamService.getDreamsByTag(tag);
-    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  public ResponseEntity<Page<DreamResponse>> getDreamsByTag(
+      @PathVariable("tag") String tag,
+      @RequestParam(value = "page", defaultValue = "0") int page) {
+    Page<DreamResponse> dreamPage = dreamService.getDreamsByTag(tag, page);
+    return ResponseEntity.ok(dreamPage); // 200 OK + JSON 반환
   }
 
-  // 제목으로 조회
+  // 제목으로 조회 (페이지네이션)
   @GetMapping("/api/dream/title")
-  public ResponseEntity<List<DreamResponse>> getDreamsByTitle(@RequestParam("q") String title) {
-    List<DreamResponse> dreams = dreamService.getDreamsByTitle(title);
-    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  public ResponseEntity<Page<DreamResponse>> getDreamsByTitle(
+      @RequestParam("q") String title,
+      @RequestParam(value = "page", defaultValue = "0") int page) {
+    Page<DreamResponse> dreamPage = dreamService.getDreamsByTitle(title, page);
+    return ResponseEntity.ok(dreamPage); // 200 OK + JSON 반환
   }
 
   // 단일 조회

@@ -256,6 +256,11 @@ body {
   line-height: 1.6;
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Categories and Tags Styles */
@@ -634,4 +639,119 @@ body {
     max-width: max-content;
     border-radius: 50px;
     margin: 8px;
+}
+
+/* Load More Button Styles */
+#loadMoreContainer {
+  padding: 3rem 0 2rem;
+  margin-top: 2rem;
+}
+
+#loadMoreBtn {
+  padding: 1rem 3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 2px solid #64a19d;
+  color: #64a19d;
+  background: transparent;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  font-family: "Varela Round", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(100, 161, 157, 0.15);
+}
+
+#loadMoreBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(100, 161, 157, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+#loadMoreBtn:hover::before {
+  left: 100%;
+}
+
+#loadMoreBtn:hover {
+  background: linear-gradient(135deg, #64a19d, #50817e);
+  color: #fff;
+  border-color: #64a19d;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(100, 161, 157, 0.35);
+}
+
+#loadMoreBtn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(100, 161, 157, 0.3);
+}
+
+#loadMoreBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(100, 161, 157, 0.25);
+}
+
+#loadMoreBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #64a19d, #50817e);
+  color: #fff;
+  border-color: #64a19d;
+}
+
+#loadMoreBtn:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(100, 161, 157, 0.15);
+}
+
+#loadMoreBtn .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* Load More Button Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+#loadMoreBtn:not(:disabled):hover {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Responsive Design for Load More Button */
+@media (max-width: 768px) {
+  #loadMoreContainer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  #loadMoreBtn {
+    padding: 0.875rem 2.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 576px) {
+  #loadMoreContainer {
+    padding: 2rem 0 1rem;
+  }
+
+  #loadMoreBtn {
+    padding: 0.75rem 2rem;
+    font-size: 0.8rem;
+    width: 100%;
+    max-width: 300px;
+  }
 }

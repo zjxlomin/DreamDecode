@@ -31,6 +31,9 @@ public class Analysis {
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
 
+    @Column(name = "magnitude", nullable = false)
+    private double magnitude;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,11 +50,13 @@ public class Analysis {
             String insight,
             String suggestion,
             String summary,
-            double sentiment
+            double sentiment,
+            double magnitude
     ) {
         this.insight = insight;
         this.suggestion = suggestion;
         this.summary = summary;
         this.sentiment = sentiment;
+        this.magnitude = magnitude;
     }
 }

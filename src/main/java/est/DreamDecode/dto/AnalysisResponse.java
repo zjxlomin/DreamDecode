@@ -20,6 +20,7 @@ public class AnalysisResponse {
     private String tags;
     private String summary;
     private double sentiment;
+    private double magnitude;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -37,6 +38,7 @@ public class AnalysisResponse {
         this.tags = analysis.getDream().getTags();
         this.summary = analysis.getSummary();
         this.sentiment = analysis.getSentiment();
+        this.magnitude = analysis.getMagnitude();
         this.createdAt = analysis.getCreatedAt();
         this.updatedAt = analysis.getUpdatedAt();
     }
