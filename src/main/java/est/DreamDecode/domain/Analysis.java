@@ -25,17 +25,14 @@ public class Analysis {
     @Column(name = "suggestion", nullable = false)
     private String suggestion;
 
-    @Column(name = "categories", nullable = false)
-    private String categories;
-
-    @Column(name = "tags", nullable = false)
-    private String tags;
-
     @Column(name = "summary", nullable = false)
     private String summary;
 
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
+
+    @Column(name = "magnitude", nullable = false)
+    private double magnitude;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -52,16 +49,14 @@ public class Analysis {
     public void updateAnalysis(
             String insight,
             String suggestion,
-            String categories,
-            String tags,
             String summary,
-            double sentiment
+            double sentiment,
+            double magnitude
     ) {
         this.insight = insight;
         this.suggestion = suggestion;
-        this.categories = categories;
-        this.tags = tags;
         this.summary = summary;
         this.sentiment = sentiment;
+        this.magnitude = magnitude;
     }
 }
