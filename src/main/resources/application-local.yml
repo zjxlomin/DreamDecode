@@ -33,3 +33,7 @@ logging:
     # JPA SQL 로그 보고 싶으면 아래 2줄 켜고, 위 show_sql=false 유지 추천
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+
+# Google Cloud Platform 설정
+gcp:
+  credentials-path: ${GCP_CREDENTIALS_PATH}
