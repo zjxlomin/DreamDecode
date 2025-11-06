@@ -183,7 +183,11 @@ $(document).ready(function() {
         
         if (categoriesArray.length > 0) {
             const html = categoriesArray
-                .map(cat => `<div class="col category-tag">${escapeHtml(cat)}</div>`)
+                .map(cat => `
+                    <span class="col category-badge" style="max-width: max-content; margin: 4px;">
+                        ${escapeHtml(cat)}
+                    </span>
+                `)
                 .join('');
             $('#detailCategories').html(`${html}`);
         } else {
@@ -208,7 +212,11 @@ $(document).ready(function() {
         
         if (tagsArray.length > 0) {
             const html = tagsArray
-                .map(tag => `<div class="col category-tag">${escapeHtml(tag)}</div>`)
+                .map(tag => `
+                    <button type="button" class="col tag-btn" style="max-width: max-content; margin: 4px;">
+                        #${escapeHtml(tag)}
+                    </button>
+                `)
                 .join('');
             $('#detailTags').html(`${html}`);
         } else {
