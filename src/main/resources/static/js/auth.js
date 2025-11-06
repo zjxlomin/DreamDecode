@@ -1,4 +1,4 @@
-// ===== 전역 상수 / 함수 (다른 페이지에서도 사용 가능) =====
+// ===== 전역 상수 / 함수 =====
 const AT_KEY = 'dd_at';
 let lastSignupEmail = null;
 let pwResetVerified = false;
@@ -20,11 +20,8 @@ function getAccessToken() {
 }
 
 function setAccessToken(token) {
-    if (token) {
-        localStorage.setItem(AT_KEY, token);
-    } else {
-        localStorage.removeItem(AT_KEY);
-    }
+    if (token) localStorage.setItem(AT_KEY, token);
+    else localStorage.removeItem(AT_KEY);
 }
 
 function updateAuthUI() {
@@ -38,58 +35,54 @@ function updateAuthUI() {
     }
 }
 
-// 다른 JS 파일/페이지에서도 쓸 수 있게 전역으로 노출
-window.AT_KEY = AT_KEY;
-window.getAccessToken = getAccessToken;
-window.setAccessToken = setAccessToken;
-window.updateAuthUI = updateAuthUI;
-window.validatePasswordRules = validatePasswordRules;
+// 모달 show/hide 헬퍼
+function showModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const modal = bootstrap.Modal.getOrCreateInstance(el);
+    modal.show();
+}
 
-// ===== DOM 로드 후 실행되는 부분 =====
+function hideModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let modal = bootstrap.Modal.getInstance(el);
+    if (!modal) modal = bootstrap.Modal.getOrCreateInstance(el);
+    modal.hide();
+}
+
+// ===== DOM 로드 후 =====
 $(function () {
 
-    // ===== ① 모든 AJAX 요청에 AT 자동 첨부 =====
+    // Ajax 공통 설정
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             const token = getAccessToken();
-
-            // 로그인/회원가입 같은 공개 API에는 굳이 붙일 필요는 없지만
-            // 있어도 문제는 없어서 간단하게 전부 붙여도 됨.
             if (token) {
                 xhr.setRequestHeader('Authorization', 'Bearer ' + token);
             }
         }
-        // error는 여기 두지 않고 아래 ajaxError 전역 핸들러에서 처리
     });
 
-    $(document).ajaxError(function (event, xhr, settings, thrownError) {
+    $(document).ajaxError(function (event, xhr, settings) {
         const status = xhr.status;
-
-        // 401(Unauthorized) + 403(Forbidden) 모두 로그인 만료로 취급
         if (status !== 401 && status !== 403) return;
 
         const url = (settings && settings.url) || '';
-
-        // 로그인/회원가입/이메일 관련 에러는 세션 만료가 아닐 수 있으니 제외
         if (
             url.startsWith('/api/auth/login') ||
             url.startsWith('/api/auth/refresh') ||
             url.startsWith('/api/users/signup') ||
             url.startsWith('/api/email/')
-        ) {
-            return;
-        }
+        ) return;
 
         console.warn(status + ' 응답 감지 → 토큰 만료 또는 인증 실패. 자동 로그아웃 처리.', url);
-
         setAccessToken(null);
         updateAuthUI();
-
         alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
     });
 
-
-    // ===== 공통: 회원가입 생년월일 max 오늘 =====
+    // 회원가입 생년월일 max 오늘
     const today = new Date().toISOString().split("T")[0];
     $('#signupBirthday').attr('max', today);
 
@@ -104,10 +97,8 @@ $(function () {
         const gender = $('input[name="signupGender"]:checked').val();
         const birthday = $('#signupBirthday').val();
 
-        $('#signupPassword').removeClass('is-invalid');
-        $('#signupPasswordConfirm').removeClass('is-invalid');
-        $('#signupPasswordError').addClass('d-none').text('');
-        $('#signupPasswordConfirmError').addClass('d-none').text('');
+        $('#signupPassword, #signupPasswordConfirm').removeClass('is-invalid');
+        $('#signupPasswordError, #signupPasswordConfirmError').addClass('d-none').text('');
 
         if (!name || !email || !password || !birthday) {
             alert('모든 필수 항목을 입력해 주세요.');
@@ -135,31 +126,24 @@ $(function () {
             url: '/api/users/signup',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({
-                name: name,
-                email: email,
-                password: password,
-                gender: gender,
-                birthday: birthday
-            }),
+            data: JSON.stringify({ name, email, password, gender, birthday }),
             success: function () {
                 lastSignupEmail = email;
 
                 $('#signupForm')[0].reset();
-                $('#signupPassword').removeClass('is-invalid');
-                $('#signupPasswordConfirm').removeClass('is-invalid');
-                $('#signupModal').modal('hide');
+                $('#signupPassword, #signupPasswordConfirm').removeClass('is-invalid');
+
+                hideModalById('signupModal');
 
                 $('#verifyEmail').val(email);
                 $('#verifyCode').val('');
-                $('#emailVerifyModal').modal('show');
+                showModalById('emailVerifyModal');
 
-                alert('회원가입이 완료되었습니다.\n이메일 인증을 위해 "인증메일 보내기" 버튼을 눌러 주세요.');
+                alert('회원가입이 완료되었습니다.\n"인증메일 보내기" 버튼을 눌러 주세요.');
             },
             error: function (xhr) {
-                const msg = xhr.responseJSON && xhr.responseJSON.message
-                    ? xhr.responseJSON.message
-                    : '회원가입에 실패했습니다. 입력값을 다시 확인해 주세요.';
+                const msg = xhr.responseJSON?.message
+                    || '회원가입에 실패했습니다. 입력값을 다시 확인해 주세요.';
                 alert(msg);
             }
         });
@@ -171,7 +155,6 @@ $(function () {
 
         const email = $('#verifyEmail').val();
         const code = $('#verifyCode').val().trim();
-
         if (!code) {
             alert('인증번호를 입력해 주세요.');
             return;
@@ -181,15 +164,14 @@ $(function () {
             url: '/api/email/verify-signup',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email: email, code: code }),
+            data: JSON.stringify({ email, code }),
             success: function () {
                 alert('이메일 인증이 완료되었습니다.\n이제 로그인할 수 있습니다.');
-
-                $('#emailVerifyModal').modal('hide');
+                hideModalById('emailVerifyModal');
 
                 $('#loginEmail').val(email);
                 $('#loginPassword').val('');
-                $('#loginModal').modal('show');
+                showModalById('loginModal');
             },
             error: function () {
                 alert('인증에 실패했습니다.\n코드가 올바른지 / 유효시간이 지났는지 확인해 주세요.');
@@ -212,11 +194,10 @@ $(function () {
             url: '/api/email/resend-signup',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email: email }),
+            data: JSON.stringify({ email }),
             success: function (res) {
-                const msg = res && res.message
-                    ? res.message
-                    : '인증 메일을 보냈습니다.\n메일함을 확인해 주세요.';
+                const msg = res?.message
+                    || '인증 메일을 보냈습니다.\n메일함을 확인해 주세요.';
                 alert(msg);
             },
             error: function () {
@@ -241,13 +222,13 @@ $(function () {
             url: '/api/auth/login',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email: email, password: password }),
+            data: JSON.stringify({ email, password }),
             success: function (res) {
-                if (res && res.accessToken) {
+                if (res?.accessToken) {
                     setAccessToken(res.accessToken);
                     updateAuthUI();
                     alert('로그인에 성공했습니다.');
-                    $('#loginModal').modal('hide');
+                    hideModalById('loginModal');
                     $('#loginPassword').val('');
                 } else {
                     alert('accessToken이 응답에 없습니다.');
@@ -256,22 +237,21 @@ $(function () {
             error: function (xhr) {
                 const res = xhr.responseJSON;
 
-                if (res && res.code === 'EMAIL_NOT_VERIFIED') {
-                    alert(res.message || '이메일 인증이 필요합니다.\n"인증메일 보내기" 버튼을 눌러 인증메일을 받아 주세요.');
+                if (res?.code === 'EMAIL_NOT_VERIFIED') {
+                    alert(res.message || '이메일 인증이 필요합니다.');
 
-                    $('#loginModal').modal('hide');
+                    hideModalById('loginModal');
 
                     $('#verifyEmail').val(email);
                     $('#verifyCode').val('');
-                    $('#emailVerifyModal').modal('show');
+                    showModalById('emailVerifyModal');
 
                     lastSignupEmail = email;
                     return;
                 }
 
-                const msg = res && res.message
-                    ? res.message
-                    : '로그인에 실패했습니다. 이메일/비밀번호를 확인해 주세요.';
+                const msg = res?.message
+                    || '로그인에 실패했습니다. 이메일/비밀번호를 확인해 주세요.';
                 alert(msg);
             }
         });
@@ -283,23 +263,23 @@ $(function () {
         $('#pwResetEmail').val(email || '');
 
         pwResetVerified = false;
+
         $('#pwResetPasswordArea').addClass('d-none');
-        $('#pwResetNewPassword').val('').removeClass('is-invalid');
-        $('#pwResetNewPasswordConfirm').val('').removeClass('is-invalid');
-        $('#pwResetPasswordError').addClass('d-none').text('');
-        $('#pwResetPasswordConfirmError').addClass('d-none').text('');
+        $('#pwResetNewPassword, #pwResetNewPasswordConfirm')
+            .val('').removeClass('is-invalid');
+        $('#pwResetPasswordError, #pwResetPasswordConfirmError')
+            .addClass('d-none').text('');
         $('#pwResetCode').val('');
-        $('#pwResetEmail').prop('readonly', false);
-        $('#pwResetCode').prop('readonly', false);
+        $('#pwResetEmail, #pwResetCode').prop('readonly', false);
 
         $('#pwResetStep1Buttons').removeClass('d-none');
         $('#pwResetStep2Buttons').addClass('d-none');
 
-        $('#loginModal').modal('hide');
-        $('#forgotPasswordModal').modal('show');
+        hideModalById('loginModal');
+        showModalById('forgotPasswordModal');
     });
 
-    /* ===== 비밀번호 찾기: 인증메일 보내기 (1단계) ===== */
+    /* ===== 비밀번호 찾기: 인증메일 보내기 ===== */
     $('#pwResetSendMailBtn').on('click', function () {
         const email = $('#pwResetEmail').val().trim();
         if (!email) {
@@ -311,11 +291,10 @@ $(function () {
             url: '/api/password/forgot',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email: email }),
+            data: JSON.stringify({ email }),
             success: function (res) {
-                const msg = res && res.message
-                    ? res.message
-                    : '비밀번호 재설정용 인증 메일을 보냈습니다.\n메일함을 확인해 주세요.';
+                const msg = res?.message
+                    || '비밀번호 재설정용 인증 메일을 보냈습니다.\n메일함을 확인해 주세요.';
                 alert(msg);
             },
             error: function () {
@@ -324,7 +303,7 @@ $(function () {
         });
     });
 
-    /* ===== 비밀번호 찾기: 인증번호 확인 (1단계) ===== */
+    /* ===== 비밀번호 찾기: 인증번호 확인 ===== */
     $('#pwResetVerifyCodeBtn').on('click', function () {
         const email = $('#pwResetEmail').val().trim();
         const code = $('#pwResetCode').val().trim();
@@ -342,31 +321,29 @@ $(function () {
             url: '/api/password/verify-reset',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ email: email, code: code }),
+            data: JSON.stringify({ email, code }),
             success: function (res) {
                 pwResetVerified = true;
 
                 $('#pwResetPasswordArea').removeClass('d-none');
-                $('#pwResetEmail').prop('readonly', true);
-                $('#pwResetCode').prop('readonly', true);
+                $('#pwResetEmail, #pwResetCode').prop('readonly', true);
 
                 $('#pwResetStep1Buttons').addClass('d-none');
                 $('#pwResetStep2Buttons').removeClass('d-none');
 
-                alert((res && res.message) || '이메일 인증이 완료되었습니다.\n새 비밀번호를 입력해 주세요.');
+                alert(res?.message || '이메일 인증이 완료되었습니다.\n새 비밀번호를 입력해 주세요.');
             },
             error: function (xhr) {
                 pwResetVerified = false;
                 const res = xhr.responseJSON;
-                const msg = res && res.message
-                    ? res.message
-                    : '인증번호 확인에 실패했습니다.\n번호와 유효시간을 다시 확인해 주세요.';
+                const msg = res?.message
+                    || '인증번호 확인에 실패했습니다.\n번호와 유효시간을 다시 확인해 주세요.';
                 alert(msg);
             }
         });
     });
 
-    /* ===== 비밀번호 재설정 제출 (2단계) ===== */
+    /* ===== 비밀번호 재설정 제출 ===== */
     $('#passwordResetForm').on('submit', function (e) {
         e.preventDefault();
 
@@ -375,10 +352,8 @@ $(function () {
         const newPassword = $('#pwResetNewPassword').val();
         const newPasswordConfirm = $('#pwResetNewPasswordConfirm').val();
 
-        $('#pwResetNewPassword').removeClass('is-invalid');
-        $('#pwResetNewPasswordConfirm').removeClass('is-invalid');
-        $('#pwResetPasswordError').addClass('d-none').text('');
-        $('#pwResetPasswordConfirmError').addClass('d-none').text('');
+        $('#pwResetNewPassword, #pwResetNewPasswordConfirm').removeClass('is-invalid');
+        $('#pwResetPasswordError, #pwResetPasswordConfirmError').addClass('d-none').text('');
 
         if (!pwResetVerified) {
             alert('먼저 "인증번호 확인" 버튼을 눌러 이메일 인증을 완료해 주세요.');
@@ -411,25 +386,20 @@ $(function () {
             url: '/api/password/reset',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({
-                email: email,
-                code: code,
-                newPassword: newPassword
-            }),
+            data: JSON.stringify({ email, code, newPassword }),
             success: function (res) {
-                alert((res && res.message) || '비밀번호가 성공적으로 변경되었습니다.\n새 비밀번호로 다시 로그인해 주세요.');
+                alert(res?.message || '비밀번호가 성공적으로 변경되었습니다.\n새 비밀번호로 다시 로그인해 주세요.');
 
-                $('#forgotPasswordModal').modal('hide');
+                hideModalById('forgotPasswordModal');
 
                 $('#loginEmail').val(email);
                 $('#loginPassword').val('');
-                $('#loginModal').modal('show');
+                showModalById('loginModal');
             },
             error: function (xhr) {
                 const res = xhr.responseJSON;
-                const msg = res && res.message
-                    ? res.message
-                    : '비밀번호 변경에 실패했습니다.\n인증번호와 비밀번호를 다시 확인해 주세요.';
+                const msg = res?.message
+                    || '비밀번호 변경에 실패했습니다.\n인증번호와 비밀번호를 다시 확인해 주세요.';
                 alert(msg);
             }
         });
@@ -453,6 +423,8 @@ $(function () {
                 setAccessToken(null);
                 updateAuthUI();
                 alert('로그아웃 되었습니다.');
+                window.location.href = '/';    // 또는 location.replace('/');
+
             }
         });
     });

@@ -3,12 +3,13 @@ package est.DreamDecode.config;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -23,15 +24,20 @@ public class JwtTokenProvider {
     public String createAccessToken(Long userId, String email) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + props.getAccessTokenValidityMs());
+
+        log.info("AT 발급: now={}, exp={}, ttlMs={}",
+                now, exp, props.getAccessTokenValidityMs());
+
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))      // sub
-                .setIssuedAt(now)                         // iat
-                .setExpiration(exp)                       // exp
-                .claim("email", email)                    // 커스텀 클레임
-                .claim("typ", "AT")                       // 토큰 구분
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .claim("email", email)
+                .claim("typ", "AT")
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public String createRefreshToken(Long userId) {
         Date now = new Date();
@@ -48,7 +54,7 @@ public class JwtTokenProvider {
     public Jws<Claims> parseToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key())
-                .setAllowedClockSkewSeconds(60) // 시계 오차 허용(선택)
+                .setAllowedClockSkewSeconds(5)
                 .build()
                 .parseClaimsJws(token);
     }
