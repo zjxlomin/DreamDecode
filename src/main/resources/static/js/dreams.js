@@ -76,7 +76,28 @@ $(document).ready(function() {
 
             // Page 객체에서 content 추출
             const dreams = data.content || [];
-            const hasNext = data.hasNext || false;
+            
+            // Spring Data JPA Page 객체의 필드 확인
+            // hasNext가 없으면 last 필드나 totalPages를 사용하여 계산
+            let hasNext = false;
+            if (data.hasNext !== undefined) {
+                hasNext = data.hasNext;
+            } else if (data.last !== undefined) {
+                hasNext = !data.last; // last가 false면 다음 페이지가 있음
+            } else if (data.totalPages !== undefined && data.number !== undefined) {
+                hasNext = data.number < data.totalPages - 1; // 현재 페이지가 마지막 페이지보다 작으면 다음 페이지 있음
+            }
+            
+            const searchInfo = currentSearchQuery ? `(검색: ${currentSearchType} - "${currentSearchQuery}")` : '(전체)';
+            console.log(`[더보기] 페이지 ${currentPage} ${searchInfo} - 받은 데이터: ${dreams.length}개`);
+            console.log(`[더보기] Page 정보:`, {
+                hasNext: data.hasNext,
+                last: data.last,
+                number: data.number,
+                totalPages: data.totalPages,
+                totalElements: data.totalElements,
+                계산된hasNext: hasNext
+            });
 
             if (dreams.length === 0) {
                 $('#loadMoreContainer').hide();
@@ -86,6 +107,7 @@ $(document).ready(function() {
 
             // 새로운 카드 추가
             const $container = $('#dreamsContainer');
+            
             dreams.forEach(dream => {
                 let categoriesHtml = '';
                 if (dream.categories && dream.categories.length > 0) {
@@ -125,8 +147,12 @@ $(document).ready(function() {
             });
 
             // 더보기 버튼 표시/숨김
-            if (!hasNext) {
+            if (hasNext) {
+                $('#loadMoreContainer').show();
+                console.log(`[더보기] 다음 페이지가 있어 더보기 버튼 표시`);
+            } else {
                 $('#loadMoreContainer').hide();
+                console.log(`[더보기] 마지막 페이지 도달 - 더보기 버튼 숨김`);
             }
 
             $btn.prop('disabled', false).html(originalText);
@@ -139,6 +165,26 @@ $(document).ready(function() {
             isLoading = false;
         }
     });
+
+    // JWT 토큰에서 userId 추출
+    function getUserIdFromToken() {
+        try {
+            const token = localStorage.getItem('dd_at');
+            if (!token) return null;
+            
+            // JWT는 header.payload.signature 형식
+            const payload = token.split('.')[1];
+            if (!payload) return null;
+            
+            // base64 디코딩 (JWT는 base64url이지만 atob도 대부분 작동)
+            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+            // JWT의 sub 필드에 userId가 저장되어 있음
+            return decoded.sub ? parseInt(decoded.sub) : null;
+        } catch (e) {
+            console.error('토큰 파싱 실패:', e);
+            return null;
+        }
+    }
 
     // 모달 내용 업데이트 함수 (공통)
     function updateModalWithAnalysisData(data) {
@@ -243,6 +289,29 @@ $(document).ready(function() {
         if (modalEl) {
             modalEl.dataset.dreamId = String(data.dreamId);
             modalEl.dataset.dreamContent = String(data.dreamContent);
+        }
+
+        // 작성자와 현재 로그인 사용자 비교하여 버튼 표시/숨김 처리
+        const currentUserId = getUserIdFromToken();
+        const dreamUserId = data.userId ? parseInt(data.userId) : null;
+        
+        // 디버깅: 콘솔에 값 출력
+        console.log('=== 버튼 표시 확인 ===');
+        console.log('currentUserId (JWT sub):', currentUserId, typeof currentUserId);
+        console.log('dreamUserId (data.userId):', dreamUserId, typeof dreamUserId);
+        console.log('data.userId (원본):', data.userId);
+        
+        const isOwner = currentUserId !== null && dreamUserId !== null && currentUserId === dreamUserId;
+        console.log('isOwner:', isOwner);
+
+        if (isOwner) {
+            // 작성자인 경우 버튼 표시
+            $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').removeClass('d-none');
+            console.log('버튼 표시됨');
+        } else {
+            // 작성자가 아닌 경우 버튼 숨김
+            $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').addClass('d-none');
+            console.log('버튼 숨김됨');
         }
     }
 
@@ -390,8 +459,17 @@ $(document).ready(function() {
         $('#editPublishedWrap').addClass('d-none');
         $('#detailScenesWrap, #detailInsightWrap, #detailSuggestionWrap, #detailCategoriesWrap, #detailTagsWrap, #detailEmotionWrap, #detailMagnitudeWrap').removeClass('d-none');
         $('#saveDreamBtn, #cancelEditBtn').addClass('d-none');
-        $('#reAnalyzeBtn').removeClass('d-none');
-        $('#editDreamBtn').removeClass('d-none');
+        
+        // 버튼 표시 상태는 updateModalWithAnalysisData에서 이미 설정되어 있으므로
+        // 편집 취소 시에도 다시 확인 (모달의 dataset에서 userId 가져오기)
+        const modalEl = document.getElementById('viewDreamModal');
+        if (modalEl && modalEl.dataset.dreamId) {
+            // 모달이 이미 열려있고 데이터가 있는 경우, 버튼 표시 상태 재확인
+            // updateModalWithAnalysisData에서 이미 처리했으므로 여기서는 그대로 유지
+        } else {
+            // 데이터가 없는 경우 기본적으로 버튼 표시 (하위 호환성)
+            $('#reAnalyzeBtn, #editDreamBtn, #deleteDreamBtn').removeClass('d-none');
+        }
     });
 
     // 꿈 등록 제출 핸들러
@@ -537,7 +615,27 @@ $(document).ready(function() {
 
             // Page 객체에서 content 추출
             const dreams = data.content || [];
-            const hasNext = data.hasNext || false;
+            
+            // Spring Data JPA Page 객체의 필드 확인
+            // hasNext가 없으면 last 필드나 totalPages를 사용하여 계산
+            let hasNext = false;
+            if (data.hasNext !== undefined) {
+                hasNext = data.hasNext;
+            } else if (data.last !== undefined) {
+                hasNext = !data.last; // last가 false면 다음 페이지가 있음
+            } else if (data.totalPages !== undefined && data.number !== undefined) {
+                hasNext = data.number < data.totalPages - 1; // 현재 페이지가 마지막 페이지보다 작으면 다음 페이지 있음
+            }
+            
+            console.log(`[검색] 페이지 0 - 받은 데이터: ${dreams.length}개`);
+            console.log(`[검색] Page 정보:`, {
+                hasNext: data.hasNext,
+                last: data.last,
+                number: data.number,
+                totalPages: data.totalPages,
+                totalElements: data.totalElements,
+                계산된hasNext: hasNext
+            });
 
             // 결과 표시
             if (dreams.length === 0) {

@@ -10,6 +10,7 @@ import java.util.List;
 public class AnalysisResponse {
     private Long analysisId;
     private Long dreamId;
+    private Long userId;
     private String dreamTitle;
     private String dreamContent;
     private boolean dreamPublished;
@@ -27,6 +28,7 @@ public class AnalysisResponse {
     public AnalysisResponse(Analysis analysis) {
         this.analysisId = analysis.getAnalysisId();
         this.dreamId = analysis.getDream().getId();
+        this.userId = analysis.getDream().getUserId();
         this.dreamTitle = analysis.getDream().getTitle();
         this.dreamContent = analysis.getDream().getContent();
         this.dreamPublished = analysis.getDream().isPublished();
