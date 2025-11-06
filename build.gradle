@@ -34,7 +34,6 @@ dependencies {
     /* --- 이메일 (SMTP + 템플릿) --- */
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'me.paulschwarz:spring-dotenv:3.0.0'
 
     /* --- JWT (JJWT 라이브러리) --- */
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
