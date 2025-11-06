@@ -1,0 +1,232 @@
+<!-- templates/fragments/auth.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="auth-modals">
+
+    <!-- 로그인 모달 -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="loginModalLabel">로그인</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <form id="loginForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="loginEmail" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="loginPassword" required />
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button"
+                                    class="btn btn-link btn-sm text-decoration-none text-secondary"
+                                    id="openForgotPasswordBtn">
+                                비밀번호를 잊으셨나요?
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                        <button type="submit" class="btn btn-primary">로그인</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 회원가입 모달 -->
+    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="signupModalLabel">회원가입</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <form id="signupForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="signupName" class="form-label">이름</label>
+                            <input type="text" class="form-control" id="signupName" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="signupEmail" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="signupEmail" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="signupPassword" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="signupPassword" required />
+                            <small class="form-text text-muted">
+                                영문, 숫자를 모두 포함한 8~20자 비밀번호를 사용해 주세요.
+                            </small>
+                            <div class="form-text text-danger d-none" id="signupPasswordError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="signupPasswordConfirm" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="signupPasswordConfirm" required />
+                            <div class="form-text text-danger d-none" id="signupPasswordConfirmError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">성별</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="signupGender" id="genderMale" value="1" checked>
+                                <label class="form-check-label" for="genderMale">남성</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="signupGender" id="genderFemale" value="2">
+                                <label class="form-check-label" for="genderFemale">여성</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="signupBirthday" class="form-label">생년월일</label>
+                            <input type="date" class="form-control" id="signupBirthday" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                        <button type="submit" class="btn btn-primary">회원가입</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이메일 인증 모달 (회원가입용) -->
+    <div class="modal fade" id="emailVerifyModal" tabindex="-1"
+         aria-labelledby="emailVerifyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="emailVerifyModalLabel">이메일 인증</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <form id="emailVerifyForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="verifyEmail" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="verifyEmail" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="verifyCode" class="form-label">인증번호</label>
+                            <input type="text" class="form-control" id="verifyCode"
+                                   maxlength="6" placeholder="인증번호 6자리" required />
+                        </div>
+
+                        <small class="text-muted">
+                            발송된 이메일의 인증번호를 입력해 주세요. (유효시간 10분)
+                        </small>
+                    </div>
+
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary" id="resendVerifyMailBtn">
+                            인증메일 보내기
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            인증하기
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 비밀번호 찾기 / 재설정 모달 -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1"
+         aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">비밀번호 찾기</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <form id="passwordResetForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="pwResetEmail" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="pwResetEmail" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">이메일 인증번호</label>
+                            <input type="text" class="form-control" id="pwResetCode"
+                                   maxlength="6" placeholder="인증번호 6자리" />
+                            <small class="text-muted">
+                                이메일로 전송된 인증번호를 입력 후, "인증번호 확인" 버튼을 눌러 주세요. (유효시간 10분)
+                            </small>
+                        </div>
+
+                        <!-- 2단계: 이메일 인증 후에만 노출 -->
+                        <div id="pwResetPasswordArea" class="d-none">
+                            <hr class="border-secondary opacity-50 my-3" />
+                            <div class="mb-3">
+                                <label for="pwResetNewPassword" class="form-label">새 비밀번호</label>
+                                <input type="password" class="form-control" id="pwResetNewPassword" required />
+                                <small class="form-text text-muted">
+                                    영문, 숫자를 모두 포함한 8~20자 비밀번호를 사용해 주세요.
+                                </small>
+                                <div class="form-text text-danger d-none" id="pwResetPasswordError"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="pwResetNewPasswordConfirm" class="form-label">새 비밀번호 확인</label>
+                                <input type="password" class="form-control" id="pwResetNewPasswordConfirm" required />
+                                <div class="form-text text-danger d-none" id="pwResetPasswordConfirmError"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- footer 버튼: 1단계/2단계 분리 -->
+                    <div class="modal-footer border-0">
+                        <!-- 1단계: 이메일 인증 단계 -->
+                        <div id="pwResetStep1Buttons"
+                             class="w-100 d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" id="pwResetSendMailBtn">
+                                인증메일 보내기
+                            </button>
+                            <button type="button" class="btn btn-primary" id="pwResetVerifyCodeBtn">
+                                인증번호 확인
+                            </button>
+                        </div>
+
+                        <!-- 2단계: 비밀번호 변경 단계 -->
+                        <div id="pwResetStep2Buttons"
+                             class="w-100 d-flex justify-content-between d-none">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                닫기
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                비밀번호 변경
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
