@@ -28,29 +28,34 @@ public class SecurityConfig {
             "http://localhost:3000"        // prod 예: "https://dreamdecode.app"
     );
 
+    // src/main/java/est/DreamDecode/config/SecurityConfig.java
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // SPA + JWT 구조: CSRF 불필요
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // 세션 없이 토큰 인증
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(reg -> reg
-                        // ✅ 인증 없이 접근 가능한 공개 API
-                        .requestMatchers("/api/auth/**", "/api/users/signup", "/api/email/**", "/actuator/health").permitAll()
-                        // 정적/루트
-                        .requestMatchers("/", "/error", "/**", "/webjars/**", "/assets/**").permitAll()
-                        // Preflight(OPTIONS) 전역 허용
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // 그 외엔 인증 필요
+                        // ✅ 정적 리소스 & 루트 페이지는 모두 허용
+                        .requestMatchers(
+                                "/", "/index", "/error", "/favicon.ico",
+                                "/css/**", "/js/**", "/images/**", "/profile",
+                                "/webjars/**", "/assets/**"
+                        ).permitAll()
+
+                        // ✅ 공개 API
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/users/signup",
+                                "/api/email/**",
+                                "/api/password/**",
+                                "/actuator/health"
+                        ).permitAll()
+
+                        // ✅ 나머지는 인증 필요 (마이페이지, 내 정보 수정 등)
                         .anyRequest().authenticated()
                 )
-                // 커스텀 401/403 핸들러는 나중에 추가
                 .addFilterBefore(new JwtTokenFilter(jwt), UsernamePasswordAuthenticationFilter.class);
-
-        // (선택) H2 콘솔 쓸 때만 열기
-        // http.headers(h -> h.frameOptions(f -> f.sameOrigin()));
 
         return http.build();
     }

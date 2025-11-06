@@ -1,44 +1,95 @@
+// ===== 전역 상수 / 함수 (다른 페이지에서도 사용 가능) =====
 const AT_KEY = 'dd_at';
 let lastSignupEmail = null;
 let pwResetVerified = false;
 
+// 비밀번호 규칙: 8~20자, 영문 + 숫자
+function validatePasswordRules(pw) {
+    if (!pw) return '비밀번호를 입력해 주세요.';
+    if (pw.length < 8 || pw.length > 20) {
+        return '비밀번호는 8~20자여야 합니다.';
+    }
+    if (!/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) {
+        return '비밀번호는 영문과 숫자를 모두 포함해야 합니다.';
+    }
+    return '';
+}
+
+function getAccessToken() {
+    return localStorage.getItem(AT_KEY);
+}
+
+function setAccessToken(token) {
+    if (token) {
+        localStorage.setItem(AT_KEY, token);
+    } else {
+        localStorage.removeItem(AT_KEY);
+    }
+}
+
+function updateAuthUI() {
+    const loggedIn = !!getAccessToken();
+    if (loggedIn) {
+        $('#navLogin, #navSignup').addClass('d-none');
+        $('#navMyPage, #navLogout').removeClass('d-none');
+    } else {
+        $('#navLogin, #navSignup').removeClass('d-none');
+        $('#navMyPage, #navLogout').addClass('d-none');
+    }
+}
+
+// 다른 JS 파일/페이지에서도 쓸 수 있게 전역으로 노출
+window.AT_KEY = AT_KEY;
+window.getAccessToken = getAccessToken;
+window.setAccessToken = setAccessToken;
+window.updateAuthUI = updateAuthUI;
+window.validatePasswordRules = validatePasswordRules;
+
+// ===== DOM 로드 후 실행되는 부분 =====
 $(function () {
-    // 비밀번호 규칙: 8~20자, 영문 + 숫자
-    function validatePasswordRules(pw) {
-        if (!pw) return '비밀번호를 입력해 주세요.';
-        if (pw.length < 8 || pw.length > 20) {
-            return '비밀번호는 8~20자여야 합니다.';
-        }
-        if (!/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) {
-            return '비밀번호는 영문과 숫자를 모두 포함해야 합니다.';
-        }
-        return '';
-    }
 
-    function getAccessToken() {
-        return localStorage.getItem(AT_KEY);
-    }
+    // ===== ① 모든 AJAX 요청에 AT 자동 첨부 =====
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            const token = getAccessToken();
 
-    function setAccessToken(token) {
-        if (token) {
-            localStorage.setItem(AT_KEY, token);
-        } else {
-            localStorage.removeItem(AT_KEY);
+            // 로그인/회원가입 같은 공개 API에는 굳이 붙일 필요는 없지만
+            // 있어도 문제는 없어서 간단하게 전부 붙여도 됨.
+            if (token) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            }
         }
-    }
+        // error는 여기 두지 않고 아래 ajaxError 전역 핸들러에서 처리
+    });
 
-    function updateAuthUI() {
-        const loggedIn = !!getAccessToken();
-        if (loggedIn) {
-            $('#navLogin, #navSignup').addClass('d-none');
-            $('#navLogout').removeClass('d-none');
-        } else {
-            $('#navLogin, #navSignup').removeClass('d-none');
-            $('#navLogout').addClass('d-none');
+    $(document).ajaxError(function (event, xhr, settings, thrownError) {
+        const status = xhr.status;
+
+        // 401(Unauthorized) + 403(Forbidden) 모두 로그인 만료로 취급
+        if (status !== 401 && status !== 403) return;
+
+        const url = (settings && settings.url) || '';
+
+        // 로그인/회원가입/이메일 관련 에러는 세션 만료가 아닐 수 있으니 제외
+        if (
+            url.startsWith('/api/auth/login') ||
+            url.startsWith('/api/auth/refresh') ||
+            url.startsWith('/api/users/signup') ||
+            url.startsWith('/api/email/')
+        ) {
+            return;
         }
-    }
 
-    // 생년월일 max 오늘
+        console.warn(status + ' 응답 감지 → 토큰 만료 또는 인증 실패. 자동 로그아웃 처리.', url);
+
+        setAccessToken(null);
+        updateAuthUI();
+
+        alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
+    });
+
+
+    // ===== 공통: 회원가입 생년월일 max 오늘 =====
     const today = new Date().toISOString().split("T")[0];
     $('#signupBirthday').attr('max', today);
 
@@ -130,7 +181,7 @@ $(function () {
             url: '/api/email/verify-signup',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({email: email, code: code}),
+            data: JSON.stringify({ email: email, code: code }),
             success: function () {
                 alert('이메일 인증이 완료되었습니다.\n이제 로그인할 수 있습니다.');
 
@@ -161,7 +212,7 @@ $(function () {
             url: '/api/email/resend-signup',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({email: email}),
+            data: JSON.stringify({ email: email }),
             success: function (res) {
                 const msg = res && res.message
                     ? res.message
@@ -190,7 +241,7 @@ $(function () {
             url: '/api/auth/login',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({email: email, password: password}),
+            data: JSON.stringify({ email: email, password: password }),
             success: function (res) {
                 if (res && res.accessToken) {
                     setAccessToken(res.accessToken);
@@ -260,7 +311,7 @@ $(function () {
             url: '/api/password/forgot',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({email: email}),
+            data: JSON.stringify({ email: email }),
             success: function (res) {
                 const msg = res && res.message
                     ? res.message
@@ -291,7 +342,7 @@ $(function () {
             url: '/api/password/verify-reset',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({email: email, code: code}),
+            data: JSON.stringify({ email: email, code: code }),
             success: function (res) {
                 pwResetVerified = true;
 
@@ -398,9 +449,6 @@ $(function () {
         $.ajax({
             url: '/api/auth/logout',
             method: 'POST',
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-            },
             complete: function () {
                 setAccessToken(null);
                 updateAuthUI();
@@ -409,5 +457,6 @@ $(function () {
         });
     });
 
+    // 초기 UI 세팅
     updateAuthUI();
 });
