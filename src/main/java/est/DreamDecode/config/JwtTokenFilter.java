@@ -27,8 +27,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             "/api/auth/refresh",
             "/api/users/signup",
             "/api/email/**",
+            "/api/password/**",
             "/actuator/health",
-            "/", "/index.html", "/favicon.ico", "/assets/**"
+            "/", "/index.html", "/favicon.ico",
+            "/css/**", "/js/**", "/images/**",
+            "/webjars/**", "/assets/**"
     };
 
     @Override
