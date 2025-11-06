@@ -1,264 +1,271 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Grayscale - Start Bootstrap Theme</title>
-        <link rel="icon" type="image/x-icon" href="/images/favicon.ico" th:href="@{/images/favicon.ico}" />
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"rel="stylesheet"
-            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-        <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}" />
-        <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}" />
-    </head>
-    <body id="page-top">
-    <!-- Navigation-->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
-        <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="/" th:href="@{/}">Dream Decode</a>
-            <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                Menu
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#projects">Dream List</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#resources">Resources</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <header class="masthead">
-        <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
-            <div class="d-flex justify-content-center">
-                <div class="text-center">
-                    <h1 class="mx-auto my-0 text-uppercase">Dream List</h1>
-                    <h2 class="text-white-50 mx-auto mt-2 mb-5">"Discover the dreams of various people"</h2>
-                </div>
-            </div>
-        </div>
-    </header>
-    
-    <!-- 꿈 등록 버튼 + 목록 카드 -->
-    <section class="py-5 bg-light" id="dreams">
-        <div class="container">
-            <div class="section-header d-flex justify-content-between align-items-center mb-4">
-                <h3 class="m-0 section-title">Dream List</h3>
-                <button type="button" class="btn btn-primary btn-sm section-action" data-bs-toggle="modal" data-bs-target="#createDreamModal">꿈 등록</button>
-            </div>
-            
-            <!-- 검색 섹션 -->
-            <div class="search-section mb-4">
-                <div class="search-container">
-                    <div class="search-tabs">
-                        <button class="search-tab active" data-search-type="title">
-                            <i class="fas fa-heading me-2"></i>제목
-                        </button>
-                        <button class="search-tab" data-search-type="category">
-                            <i class="fas fa-tag me-2"></i>카테고리
-                        </button>
-                        <button class="search-tab" data-search-type="tag">
-                            <i class="fas fa-hashtag me-2"></i>태그
-                        </button>
-                    </div>
-                    <div class="search-input-wrapper">
-                        <div class="search-input-group">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="form-control search-input" id="searchInput" placeholder="검색어를 입력하세요" />
-                            <button type="button" class="btn btn-primary search-btn" id="searchBtn">
-                                <i class="fas fa-search me-1"></i>검색
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary reset-btn d-none" id="resetBtn">
-                                <i class="fas fa-times me-1"></i>초기화
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-4" id="dreamsContainer" th:if="${dreams} != null">
-                <div class="col-md-4" th:each="dream : ${dreams}">
-                    <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}">
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${dream.title}">꿈 제목</h5>
-                            <div class="dream-meta mb-2" th:if="${dream.categories != null and !dream.categories.isEmpty()}">
-                                <div class="dream-categories">
-                                    <span class="category-badge" th:each="category : ${dream.categories}" th:text="${category}">카테고리</span>
-                                </div>
-                            </div>
-                            <p class="card-text" th:text="${dream.content}">꿈 내용</p>
-                            <div class="dream-tags mt-3" th:if="${dream.tags != null and !dream.tags.isEmpty()}">
-                                <button type="button" class="tag-btn" th:each="tag : ${dream.tags}" th:text="'#' + ${tag}">#태그</button>
-                            </div>
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 더보기 버튼 -->
-            <div class="text-center mt-4" id="loadMoreContainer" th:if="${hasMore}">
-                <button type="button" class="btn btn-outline-primary" id="loadMoreBtn">
-                    <i class="fas fa-chevron-down me-2"></i>더보기
-                </button>
-            </div>
-        </div>
-    </section>
-    
-    <!-- 꿈 등록 모달 -->
-    <div class="modal fade" id="createDreamModal" tabindex="-1" aria-labelledby="createDreamModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content position-relative">
-                <!-- 로딩 오버레이 -->
-                <div id="createDreamModalLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
-                    <div class="text-center">
-                        <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mb-0" style="color: black; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려 주세요...</p>
-                    </div>
-                </div>
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createDreamModalLabel">꿈 등록</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createDreamForm">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="dreamTitle" class="form-label">제목</label>
-                                <input type="text" class="form-control" id="dreamTitle" placeholder="꿈 제목을 입력하세요" required>
-                            </div>
-                            <div class="col-12">
-                                <label for="dreamContent" class="form-label">내용</label>
-                                <textarea class="form-control" id="dreamContent" rows="6" placeholder="꿈 내용을 입력하세요" required></textarea>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="dreamPublished" checked>
-                                    <label class="form-check-label" for="dreamPublished">공개하기</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
-                    <button type="button" class="btn btn-primary btn-sm" id="submitDreamBtn">등록</button>
-                </div>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>Grayscale - Start Bootstrap Theme</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" th:href="@{/images/favicon.ico}"/>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}"/>
+</head>
+<body id="page-top">
+<!-- Navigation -->
+<div th:replace="fragments/nav :: nav"></div>
+<header class="masthead">
+    <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+        <div class="d-flex justify-content-center">
+            <div class="text-center">
+                <h1 class="mx-auto my-0 text-uppercase">Dream List</h1>
+                <h2 class="text-white-50 mx-auto mt-2 mb-5">"Discover the dreams of various people"</h2>
             </div>
         </div>
     </div>
+</header>
 
-    <!-- 꿈 상세 모달 -->
-    <div class="modal fade" id="viewDreamModal" tabindex="-1" aria-labelledby="viewDreamModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content position-relative">
-                <!-- 로딩 오버레이 -->
-                <div id="viewDreamModalLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
-                    <div class="text-center">
-                        <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mb-0" style="color: #64a19d; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려 주세요...</p>
-                    </div>
+<!-- 꿈 등록 버튼 + 목록 카드 -->
+<section class="py-5 bg-light" id="dreams">
+    <div class="container">
+        <div class="section-header d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0 section-title">Dream List</h3>
+            <button type="button" class="btn btn-primary btn-sm section-action" data-bs-toggle="modal"
+                    data-bs-target="#createDreamModal">꿈 등록
+            </button>
+        </div>
+
+        <!-- 검색 섹션 -->
+        <div class="search-section mb-4">
+            <div class="search-container">
+                <div class="search-tabs">
+                    <button class="search-tab active" data-search-type="title">
+                        <i class="fas fa-heading me-2"></i>제목
+                    </button>
+                    <button class="search-tab" data-search-type="category">
+                        <i class="fas fa-tag me-2"></i>카테고리
+                    </button>
+                    <button class="search-tab" data-search-type="tag">
+                        <i class="fas fa-hashtag me-2"></i>태그
+                    </button>
                 </div>
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewDreamModalLabel">꿈 상세</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">제목</label>
-                        <div id="detailTitle" class="form-control"></div>
-                        <input id="editTitle" class="form-control d-none" type="text" placeholder="제목" />
+                <div class="search-input-wrapper">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input" id="searchInput" placeholder="검색어를 입력하세요"/>
+                        <button type="button" class="btn btn-primary search-btn" id="searchBtn">
+                            <i class="fas fa-search me-1"></i>검색
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary reset-btn d-none" id="resetBtn">
+                            <i class="fas fa-times me-1"></i>초기화
+                        </button>
                     </div>
-                    <div class="mb-3" id="detailContentWrap">
-                        <label class="form-label fw-bold">내용</label>
-                        <div id="detailContent" class="form-control" style="white-space:pre-wrap; min-height: 6rem;"></div>
-                        <textarea id="editContent" class="form-control d-none" rows="6" placeholder="내용"></textarea>
-                    </div>
-                    <div class="mb-3" id="detailScenesWrap">
-                        <label class="form-label fw-bold">주요 장면 분석</label>
-                        <div id="detailScenes">
-                            <!-- 장면 분석 목록 -->
-                        </div>
-                    </div>
-                    <div class="mb-3" id="detailInsightWrap">
-                        <label class="form-label fw-bold">심리적 흐름 및 무의식적 메세지</label>
-                        <div id="detailInsight" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석 준비중</div>
-                    </div>
-                    <div class="mb-3" id="detailSuggestionWrap">
-                        <label class="form-label fw-bold">조언</label>
-                        <div id="detailSuggestion" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석 준비중</div>
-                    </div>
-                    <div class="row mb-3 align-items-center" id="detailCategoriesWrap">
-                        <label class="col-sm-2 col-form-label fw-bold mb-0">카테고리</label>
-                        <div class="col">
-                            <div id="detailCategories" class="row">
-                                <!-- 카테고리 목록 -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3 align-items-center" id="detailTagsWrap">
-                        <label class="col-sm-2 col-form-label fw-bold mb-0">태그</label>
-                        <div class="col">
-                            <div id="detailTags" class="row">
-                                <!-- 태그 목록 -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3 align-items-center">
-                        <label class="col-sm-2 col-form-label fw-bold mb-0">공개여부</label>
-                        <div class="col-sm-10">
-                            <div id="detailPublished" class="form-control-plaintext">공개</div>
-                            <div class="form-check d-none" id="editPublishedWrap">
-                                <input class="form-check-input" type="checkbox" id="editPublished">
-                                <label class="form-check-label" for="editPublished">공개하기</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-1 align-items-center" id="detailEmotionWrap">
-                        <label class="col-sm-2 col-form-label fw-bold mb-0">감정점수 : </label>
-                        <div class="col-sm-10">
-                            <div id="detailEmotion" class="form-control-plaintext">-점</div>
-                        </div>
-                    </div>
-                    <div class="row mb-1 align-items-center" id="detailMagnitudeWrap">
-                        <label class="col-sm-2 col-form-label fw-bold mb-0">감정 강도 : </label>
-                        <div class="col-sm-10">
-                            <div id="detailMagnitude" class="form-control-plaintext">-점</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="deleteDreamBtn">삭제하기</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="reAnalyzeBtn">다시 분석하기</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
-                    <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
                 </div>
             </div>
         </div>
+
+        <div class="row g-4" id="dreamsContainer" th:if="${dreams} != null">
+            <div class="col-md-4" th:each="dream : ${dreams}">
+                <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${dream.title}">꿈 제목</h5>
+                        <div class="dream-meta mb-2"
+                             th:if="${dream.categories != null and !dream.categories.isEmpty()}">
+                            <div class="dream-categories">
+                                <span class="category-badge" th:each="category : ${dream.categories}"
+                                      th:text="${category}">카테고리</span>
+                            </div>
+                        </div>
+                        <p class="card-text" th:text="${dream.content}">꿈 내용</p>
+                        <div class="dream-tags mt-3" th:if="${dream.tags != null and !dream.tags.isEmpty()}">
+                            <button type="button" class="tag-btn" th:each="tag : ${dream.tags}" th:text="'#' + ${tag}">
+                                #태그
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 더보기 버튼 -->
+        <div class="text-center mt-4" id="loadMoreContainer" th:if="${hasMore}">
+            <button type="button" class="btn btn-outline-primary" id="loadMoreBtn">
+                <i class="fas fa-chevron-down me-2"></i>더보기
+            </button>
+        </div>
     </div>
-    <!-- Footer-->
-    <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Est.Project &copy; Dream Decode 2025</div></footer>
-    <!-- jQuery 3.7.1 -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
-    <!-- Font Awesome icons (free version)-->
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Bootstrap core JS-->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="/js/dreams.js" th:src="@{/js/dreams.js}"></script>
-    </body>
+</section>
+
+<!-- 꿈 등록 모달 -->
+<div class="modal fade" id="createDreamModal" tabindex="-1" aria-labelledby="createDreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <!-- 로딩 오버레이 -->
+            <div id="createDreamModalLoading"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+                 style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"
+                         style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0" style="color: black; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려
+                        주세요...</p>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="createDreamModalLabel">꿈 등록</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createDreamForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="dreamTitle" class="form-label">제목</label>
+                            <input type="text" class="form-control" id="dreamTitle" placeholder="꿈 제목을 입력하세요" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="dreamContent" class="form-label">내용</label>
+                            <textarea class="form-control" id="dreamContent" rows="6" placeholder="꿈 내용을 입력하세요"
+                                      required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dreamPublished" checked>
+                                <label class="form-check-label" for="dreamPublished">공개하기</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary btn-sm" id="submitDreamBtn">등록</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 꿈 상세 모달 -->
+<div class="modal fade" id="viewDreamModal" tabindex="-1" aria-labelledby="viewDreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <!-- 로딩 오버레이 -->
+            <div id="viewDreamModalLoading"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+                 style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"
+                         style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0" style="color: #64a19d; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려
+                        주세요...</p>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDreamModalLabel">꿈 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">제목</label>
+                    <div id="detailTitle" class="form-control"></div>
+                    <input id="editTitle" class="form-control d-none" type="text" placeholder="제목"/>
+                </div>
+                <div class="mb-3" id="detailContentWrap">
+                    <label class="form-label fw-bold">내용</label>
+                    <div id="detailContent" class="form-control" style="white-space:pre-wrap; min-height: 6rem;"></div>
+                    <textarea id="editContent" class="form-control d-none" rows="6" placeholder="내용"></textarea>
+                </div>
+                <div class="mb-3" id="detailScenesWrap">
+                    <label class="form-label fw-bold">주요 장면 분석</label>
+                    <div id="detailScenes">
+                        <!-- 장면 분석 목록 -->
+                    </div>
+                </div>
+                <div class="mb-3" id="detailInsightWrap">
+                    <label class="form-label fw-bold">심리적 흐름 및 무의식적 메세지</label>
+                    <div id="detailInsight" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석
+                        준비중
+                    </div>
+                </div>
+                <div class="mb-3" id="detailSuggestionWrap">
+                    <label class="form-label fw-bold">조언</label>
+                    <div id="detailSuggestion" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석
+                        준비중
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailCategoriesWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">카테고리</label>
+                    <div class="col">
+                        <div id="detailCategories" class="row">
+                            <!-- 카테고리 목록 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailTagsWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">태그</label>
+                    <div class="col">
+                        <div id="detailTags" class="row">
+                            <!-- 태그 목록 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">공개여부</label>
+                    <div class="col-sm-10">
+                        <div id="detailPublished" class="form-control-plaintext">공개</div>
+                        <div class="form-check d-none" id="editPublishedWrap">
+                            <input class="form-check-input" type="checkbox" id="editPublished">
+                            <label class="form-check-label" for="editPublished">공개하기</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailEmotionWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">감정점수 : </label>
+                    <div class="col-sm-10">
+                        <div id="detailEmotion" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailMagnitudeWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">감정 강도 : </label>
+                    <div class="col-sm-10">
+                        <div id="detailMagnitude" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="deleteDreamBtn">삭제하기</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="reAnalyzeBtn">다시 분석하기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
+                <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer-->
+<footer class="footer bg-black small text-center text-white-50">
+    <div class="container px-4 px-lg-5">Est.Project &copy; Dream Decode 2025</div>
+</footer>
+<!-- jQuery 3.7.1 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<!-- Font Awesome icons (free version)-->
+<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+<!-- Bootstrap core JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Core theme JS-->
+<script src="/js/dreams.js" th:src="@{/js/dreams.js}"></script>
+</body>
 </html>
