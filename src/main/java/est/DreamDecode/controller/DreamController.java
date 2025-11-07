@@ -3,9 +3,7 @@ package est.DreamDecode.controller;
 import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
-import est.DreamDecode.dto.SentimentResult;
 import est.DreamDecode.service.DreamService;
-import est.DreamDecode.service.NaturalLanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +14,10 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class DreamController {
   private DreamService dreamService;
-  private NaturalLanguageService nlpService;
 
   @Autowired
-  public DreamController(DreamService dreamService, NaturalLanguageService nlpService) {
+  public DreamController(DreamService dreamService) {
     this.dreamService = dreamService;
-    this.nlpService = nlpService;
   }
 
   @GetMapping("/dream")
@@ -98,24 +94,5 @@ public class DreamController {
   public ResponseEntity<Void> deleteDream(@PathVariable("id") Long dreamId) {
     dreamService.deleteDream(dreamId);
     return ResponseEntity.noContent().build(); // 204 No Content
-  }
-
-  // Google NLP API 테스트용 컨트롤러
-  @GetMapping("/analyze-sentiment")
-  @ResponseBody
-  public String getSentiment(@RequestParam String text) {
-    SentimentResult sentiment = nlpService.analyzeSentiment(text);
-
-    if (sentiment == null) {
-      return "감정 분석 결과를 찾을 수 없습니다.";
-    }
-
-    // Score: -1.0(부정) ~ 1.0(긍정)
-    // Magnitude: 감정의 강도 (0.0 ~ 무한대, 길수록 높아짐)
-    return String.format(
-            "감정 점수(Score): %.3f \n 감정 강도(Magnitude): %.3f",
-            sentiment.getScore(),
-            sentiment.getMagnitude()
-    );
   }
 }
