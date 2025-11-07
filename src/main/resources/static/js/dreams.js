@@ -15,6 +15,19 @@ $(document).ready(function() {
     const $searchInput = $('#searchInput');
     const $resetBtn = $('#resetBtn');
 
+    // 로그인 상태 확인하여 꿈 등록 버튼 표시
+    function checkLoginAndShowCreateButton() {
+        const token = getUserIdFromToken();
+        if (token) {
+            $('#createDreamBtn').removeClass('d-none');
+        } else {
+            $('#createDreamBtn').addClass('d-none');
+        }
+    }
+
+    // 페이지 로드 시 버튼 표시 확인
+    checkLoginAndShowCreateButton();
+
     // HTML 이스케이프 함수
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -133,7 +146,20 @@ $(document).ready(function() {
     // JWT 토큰에서 userId 추출
     function getUserIdFromToken() {
         try {
-            const token = localStorage.getItem('dd_at');
+            // [localStorage 방식]
+            // const token = localStorage.getItem('dd_at');
+            
+            // [쿠키 방식]
+            const cookies = document.cookie.split(';');
+            let token = null;
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'DD_AT') {
+                    token = value;
+                    break;
+                }
+            }
+            
             if (!token) return null;
 
             const payload = token.split('.')[1];
@@ -287,7 +313,7 @@ $(document).ready(function() {
         try {
             currentPage++;
             const url = buildSearchUrl(currentPage);
-            const res = await fetch(url);
+            const res = await fetch(url, { credentials: 'include' });
             if (!res.ok) throw new Error('로딩 실패');
             const data = await res.json();
 
@@ -332,7 +358,10 @@ $(document).ready(function() {
 
         if (!confirm('정말 삭제하시겠습니까?')) return;
         try {
-            const res = await fetch(`/api/dream/${dreamId}`, { method: 'DELETE' });
+            const res = await fetch(`/api/dream/${dreamId}`, { 
+                method: 'DELETE',
+                credentials: 'include'
+            });
             if (!res.ok) throw new Error('삭제 실패');
             alert('삭제되었습니다.');
             const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
@@ -355,7 +384,7 @@ $(document).ready(function() {
         if (!dreamId) return;
 
         try {
-            const res = await fetch(`/api/dream/${dreamId}/analysis`);
+            const res = await fetch(`/api/dream/${dreamId}/analysis`, { credentials: 'include' });
             if (!res.ok) throw new Error('조회 실패');
             const data = await res.json();
 
@@ -402,11 +431,12 @@ $(document).ready(function() {
             const dreamRes = await fetch(`/api/dream/${dreamId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content, published })
+                body: JSON.stringify({ title, content, published }),
+                credentials: 'include'
             });
             if (!dreamRes.ok) throw new Error('수정 실패');
 
-            const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`);
+            const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, { credentials: 'include' });
             if (!analysisRes.ok) throw new Error('분석 결과 조회 실패');
             const data = await analysisRes.json();
 
@@ -453,7 +483,8 @@ $(document).ready(function() {
                 const dreamRes = await fetch('/api/dream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, content, published })
+                    body: JSON.stringify({ title, content, published }),
+                    credentials: 'include'
                 });
                 if (!dreamRes.ok) {
                     const msg = await dreamRes.text();
@@ -489,13 +520,16 @@ $(document).ready(function() {
         showLoadingOverlay('view');
 
         try {
-            const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, { method: 'PUT' });
+            const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, { 
+                method: 'PUT',
+                credentials: 'include'
+            });
             if (!analysisRes.ok) {
                 const msg = await analysisRes.text();
                 throw new Error(msg || '분석 실패');
             }
 
-            const getRes = await fetch(`/api/dream/${dreamId}/analysis`);
+            const getRes = await fetch(`/api/dream/${dreamId}/analysis`, { credentials: 'include' });
             if (!getRes.ok) throw new Error('분석 결과 조회 실패');
             const data = await getRes.json();
 
@@ -541,7 +575,7 @@ $(document).ready(function() {
 
         try {
             const url = buildSearchUrl(0);
-            const res = await fetch(url);
+            const res = await fetch(url, { credentials: 'include' });
             if (!res.ok) throw new Error('검색 실패');
             const data = await res.json();
 

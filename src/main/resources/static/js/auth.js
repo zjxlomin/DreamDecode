@@ -1,5 +1,4 @@
 // ===== 전역 상수 / 함수 =====
-const AT_KEY = 'dd_at';
 let lastSignupEmail = null;
 let pwResetVerified = false;
 
@@ -16,12 +15,26 @@ function validatePasswordRules(pw) {
 }
 
 function getAccessToken() {
-    return localStorage.getItem(AT_KEY);
+    // [localStorage 방식]
+    // return localStorage.getItem('dd_at');
+    
+    // [쿠키 방식]
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'DD_AT') {
+            return value;
+        }
+    }
+    return null;
 }
 
 function setAccessToken(token) {
-    if (token) localStorage.setItem(AT_KEY, token);
-    else localStorage.removeItem(AT_KEY);
+    // [localStorage 방식]
+    // if (token) localStorage.setItem('dd_at', token);
+    // else localStorage.removeItem('dd_at');
+    
+    // [쿠키 방식] 서버가 쿠키로 관리하므로 아무 작업 안 함
 }
 
 function updateAuthUI() {
@@ -29,9 +42,13 @@ function updateAuthUI() {
     if (loggedIn) {
         $('#navLogin, #navSignup').addClass('d-none');
         $('#navMyPage, #navLogout').removeClass('d-none');
+        // dreams 페이지의 꿈 등록 버튼 표시
+        $('#createDreamBtn').removeClass('d-none');
     } else {
         $('#navLogin, #navSignup').removeClass('d-none');
         $('#navMyPage, #navLogout').addClass('d-none');
+        // dreams 페이지의 꿈 등록 버튼 숨김
+        $('#createDreamBtn').addClass('d-none');
     }
 }
 
@@ -56,6 +73,9 @@ $(function () {
 
     // Ajax 공통 설정
     $.ajaxSetup({
+        xhrFields: {
+            withCredentials: true  // 쿠키 자동 전송
+        },
         beforeSend: function (xhr, settings) {
             const token = getAccessToken();
             if (token) {
@@ -77,7 +97,7 @@ $(function () {
         ) return;
 
         console.warn(status + ' 응답 감지 → 토큰 만료 또는 인증 실패. 자동 로그아웃 처리.', url);
-        setAccessToken(null);
+        // [localStorage 방식] setAccessToken(null);
         updateAuthUI();
         alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
     });
@@ -224,15 +244,11 @@ $(function () {
             contentType: 'application/json',
             data: JSON.stringify({ email, password }),
             success: function (res) {
-                if (res?.accessToken) {
-                    setAccessToken(res.accessToken);
-                    updateAuthUI();
-                    alert('로그인에 성공했습니다.');
-                    hideModalById('loginModal');
-                    $('#loginPassword').val('');
-                } else {
-                    alert('accessToken이 응답에 없습니다.');
-                }
+                // [localStorage 방식] setAccessToken(res.accessToken);
+                updateAuthUI();
+                alert('로그인에 성공했습니다.');
+                hideModalById('loginModal');
+                $('#loginPassword').val('');
             },
             error: function (xhr) {
                 const res = xhr.responseJSON;
@@ -411,7 +427,6 @@ $(function () {
 
         const token = getAccessToken();
         if (!token) {
-            setAccessToken(null);
             updateAuthUI();
             return;
         }
@@ -420,10 +435,10 @@ $(function () {
             url: '/api/auth/logout',
             method: 'POST',
             complete: function () {
-                setAccessToken(null);
+                // [localStorage 방식] setAccessToken(null);
                 updateAuthUI();
                 alert('로그아웃 되었습니다.');
-                window.location.href = '/';    // 또는 location.replace('/');
+                window.location.href = '/';
 
             }
         });
