@@ -21,11 +21,11 @@
           crossorigin="anonymous">
 
     <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}"/>
-    <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}"/>
+    <link href="/css/main.css" rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body id="page-top">
 <!-- Navigation -->
-<div th:replace="fragments/nav :: nav"></div>
+<div th:replace="~{fragments/nav :: nav(true)}"></div>
 
 <!-- Masthead-->
 <header class="masthead">
@@ -124,7 +124,7 @@
 </footer>
 
 <!-- ✅ 여기서 auth 모달 프래그먼트 포함 -->
-<div th:replace="fragments/auth :: auth-modals"></div>
+<div th:replace="~{fragments/auth :: auth-modals}"></div>
 
 <!-- jQuery 3.7.1 -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
@@ -135,7 +135,7 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
 <!-- Custom JS -->
-<script src="/js/dreams.js" th:src="@{/js/dreams.js}"></script>
-<script src="/js/auth.js"></script>
+<script src="/js/common.js" th:src="@{/js/common.js}"></script>
+<script src="/js/auth.js" th:src="@{/js/auth.js}"></script>
 </body>
 </html>
