@@ -1,5 +1,5 @@
 <!-- templates/fragments/nav.html -->
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav" th:fragment="nav">
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav" th:fragment="nav(showMainMenu)">
     <div class="container px-4 px-lg-5">
         <a class="navbar-brand" href="/" th:href="@{/}">Dream Decode</a>
 
@@ -12,9 +12,16 @@
 
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="#projects">Dream List</a></li>
-                <li class="nav-item"><a class="nav-link" href="#resources">Resources</a></li>
+                <!-- 메인 페이지에서만 표시되는 메뉴 -->
+                <li class="nav-item" th:if="${showMainMenu}">
+                    <a class="nav-link" href="#about">About</a>
+                </li>
+                <li class="nav-item" th:if="${showMainMenu}">
+                    <a class="nav-link" href="#projects">Dream List</a>
+                </li>
+                <li class="nav-item" th:if="${showMainMenu}">
+                    <a class="nav-link" href="#resources">Resources</a>
+                </li>
 
                 <!-- ✅ 로그인하지 않은 경우 -->
                 <li class="nav-item ms-3" id="navLogin">

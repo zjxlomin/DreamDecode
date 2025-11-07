@@ -5,6 +5,7 @@ import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
 import est.DreamDecode.repository.DreamRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,17 +16,12 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class DreamService {
   private final DreamRepository dreamRepository;
   private final NaturalLanguageService nlpService;
   private final AnalysisService analysisService;
   private static final int PAGE_SIZE = 9;
-
-  public DreamService(DreamRepository dreamRepository,  NaturalLanguageService nlpService,  AnalysisService analysisService) {
-    this.dreamRepository = dreamRepository;
-    this.nlpService = nlpService;
-      this.analysisService = analysisService;
-  }
 
   public List<DreamResponse> getAllPublicDreams() {
     List<DreamResponse> dreams = dreamRepository.findAllByPublishedTrue().stream()
