@@ -4,7 +4,7 @@ import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
 import est.DreamDecode.service.DreamService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,13 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequiredArgsConstructor
 public class DreamController {
-  private DreamService dreamService;
-
-  @Autowired
-  public DreamController(DreamService dreamService) {
-    this.dreamService = dreamService;
-  }
+  private final DreamService dreamService;
 
   @GetMapping("/dream")
   public String getPublicDreams(Model model) {
