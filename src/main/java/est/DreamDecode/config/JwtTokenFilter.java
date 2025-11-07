@@ -2,6 +2,7 @@ package est.DreamDecode.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
+        // 1. Authorization 헤더에서 토큰 확인 (API 호출용)
         String token = resolveBearer(req);
+        
+        // 2. 헤더에 없으면 쿠키에서 확인 (페이지 접근용)
+        if (token == null) {
+            token = resolveCookie(req, "DD_AT");
+        }
 
         if (token != null && jwt.validate(token) && jwt.isAccessToken(token)) {
             Long userId = jwt.getUserId(token);
@@ -68,5 +75,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String header = req.getHeader(HttpHeaders.AUTHORIZATION);
         if (header == null || !header.startsWith("Bearer ")) return null;
         return header.substring(7);
+    }
+
+    private String resolveCookie(HttpServletRequest req, String cookieName) {
+        Cookie[] cookies = req.getCookies();
+        if (cookies == null) return null;
+        for (Cookie cookie : cookies) {
+            if (cookieName.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

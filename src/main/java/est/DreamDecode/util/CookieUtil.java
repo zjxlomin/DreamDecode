@@ -36,9 +36,44 @@ public class CookieUtil {
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
+    /**
+     * JavaScript에서 읽을 수 있는 일반 쿠키 추가 (AT용)
+     */
+    public static void addCookie(
+            HttpServletResponse res,
+            String name,
+            String value,
+            int maxAgeSec
+    ) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .httpOnly(false)  // JavaScript에서 읽기 가능
+                .secure(SECURE)
+                .path("/")
+                .maxAge(Duration.ofSeconds(maxAgeSec))
+                .sameSite(SAME_SITE)
+                .build();
+
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     public static void deleteCookie(HttpServletResponse res, String name) {
         ResponseCookie cookie = ResponseCookie.from(name, "")
                 .httpOnly(true)
+                .secure(SECURE)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .sameSite(SAME_SITE)
+                .build();
+
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    /**
+     * 일반 쿠키 삭제
+     */
+    public static void deleteNormalCookie(HttpServletResponse res, String name) {
+        ResponseCookie cookie = ResponseCookie.from(name, "")
+                .httpOnly(false)
                 .secure(SECURE)
                 .path("/")
                 .maxAge(Duration.ZERO)

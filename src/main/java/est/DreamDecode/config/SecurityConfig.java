@@ -77,7 +77,7 @@ public class SecurityConfig {
                                 "/api/dream/**"          // 꿈 등록/수정/삭제 (GET 제외, 위에서 허용)
                         ).authenticated()
 
-                        // ===== 8. 그 외 모든 요청은 인증 필요 =====
+                        // ===== 그 외 모든 요청은 인증 필요 =====
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtTokenFilter(jwt), UsernamePasswordAuthenticationFilter.class);

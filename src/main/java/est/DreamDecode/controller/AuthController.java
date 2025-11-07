@@ -25,17 +25,22 @@ public class AuthController {
     private final JwtTokenProvider jwt; // 로그아웃 시 userId 추출용
 
     private static final String RT_COOKIE = "DD_RT";
+    private static final String AT_COOKIE = "DD_AT";
     private static final int RT_MAX_AGE = 14 * 24 * 60 * 60; // 14일
+    private static final int AT_MAX_AGE = 2 * 60 * 60; // 2시간
 
-    /** 로그인: AT → body / RT → HttpOnly 쿠키 */
+    /** 로그인: AT/RT → body + 쿠키 (페이지 접근을 위해 쿠키에도 저장) */
     @PostMapping("/login")
-    public ResponseEntity<?> login(   // 👈 제너릭 타입을 ? 로
+    public ResponseEntity<?> login(
                                       @RequestBody @Valid LoginRequest req,
                                       HttpServletResponse res
     ) {
         try {
             var tokens = authService.login(req.email(), req.password());
+            // RT는 HttpOnly 쿠키 (보안 - JavaScript 접근 불가)
             CookieUtil.addHttpOnlyCookie(res, RT_COOKIE, tokens.refreshToken(), RT_MAX_AGE);
+            // AT는 일반 쿠키 (JavaScript에서 읽기 가능 - 버튼 표시 등에 필요)
+            CookieUtil.addCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
             return ResponseEntity.ok(new AuthResponse(tokens.accessToken()));
         } catch (EmailNotVerifiedException e) {
             return ResponseEntity.status(401)
@@ -59,7 +64,9 @@ public class AuthController {
         if (rt == null) return ResponseEntity.status(401).build();
 
         var tokens = authService.refresh(rt);
+        // RT와 AT 모두 쿠키 갱신
         CookieUtil.addHttpOnlyCookie(res, RT_COOKIE, tokens.refreshToken(), RT_MAX_AGE);
+        CookieUtil.addCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
         return ResponseEntity.ok(new AuthResponse(tokens.accessToken()));
     }
 
@@ -74,6 +81,7 @@ public class AuthController {
             } catch (Exception ignored) {}
         }
         CookieUtil.deleteCookie(res, RT_COOKIE);
+        CookieUtil.deleteNormalCookie(res, AT_COOKIE);
         return ResponseEntity.noContent().build();
     }
 
