@@ -177,13 +177,20 @@
     }
 
     $(function () {
-        // auth.js 에서 정의된 getAccessToken 사용
+        // auth.js에서 정의된 getAccessToken 사용 (쿠키에서 읽음)
         const token = getAccessToken();
         if (!token) {
             alert('로그인이 필요합니다.');
             window.location.href = '/';
             return;
         }
+
+        // Ajax 공통 설정 (쿠키 전송)
+        $.ajaxSetup({
+            xhrFields: {
+                withCredentials: true
+            }
+        });
 
         // 생년월일: 오늘까지만 선택 가능
         const today = new Date().toISOString().split("T")[0];
