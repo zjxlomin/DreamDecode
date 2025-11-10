@@ -120,19 +120,21 @@ public class DreamService {
     dreamRepository.deleteById(dreamId);
   }
 
-  // 현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, 페이지네이션)
-  public Page<DreamResponse> getMyDreams(Long userId, int page) {
-    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-    Page<Dream> dreamPage = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-    return dreamPage.map(DreamResponse::from);
-  }
-
-
   //  현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, 전체 목록)
-  public List<DreamResponse> getMyDreams(Long userId) {
-    List<Dream> dreams = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, Pageable.unpaged()).getContent();
+  public List<DreamResponse> getMyAllDreams(Long userId) {
+    List<Dream> dreams = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId);
     return dreams.stream()
                  .map(DreamResponse::from)
                  .toList();
+  }
+
+  // 현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, limit 만큼)
+  public List<DreamResponse> getMyDreams(Long userId, int limit) {
+    Pageable pageable = PageRequest.of(0, Math.max(limit, 1));
+    Page<Dream> dreamPage = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    return dreamPage.getContent()
+                    .stream()
+                    .map(DreamResponse::from)
+                    .toList();
   }
 }

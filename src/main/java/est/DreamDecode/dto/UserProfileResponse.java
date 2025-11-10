@@ -13,9 +13,12 @@ public record UserProfileResponse(
         LocalDate birthday,
         Integer gender,
         LocalDateTime emailVerifiedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Integer totalDreamCount,
+        Integer publicDreamCount,
+        Integer analyzedDreamCount
 ) {
-    public static UserProfileResponse from(User u) {
+    public static UserProfileResponse of(User u, int totalDreamCount, int publicDreamCount, int analyzedDreamCount) {
         return new UserProfileResponse(
                 u.getId(),
                 u.getEmail(),
@@ -23,7 +26,10 @@ public record UserProfileResponse(
                 u.getBirthday(),
                 u.getGender(),
                 u.getEmailVerifiedAt(),
-                u.getCreatedAt()
+                u.getCreatedAt(),
+                totalDreamCount,
+                publicDreamCount,
+                analyzedDreamCount
         );
     }
 }

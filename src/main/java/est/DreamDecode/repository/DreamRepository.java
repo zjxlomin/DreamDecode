@@ -47,4 +47,13 @@ public interface DreamRepository extends JpaRepository<Dream, Long> {
   
   // 현재 로그인한 사용자의 꿈 조회 (최신순)
   Page<Dream> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+  List<Dream> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+  long countByUserId(Long userId);
+
+  long countByUserIdAndPublishedTrue(Long userId);
+
+  @Query("SELECT COUNT(d) FROM Dream d WHERE d.userId = :userId AND d.analysis IS NOT NULL")
+  long countAnalyzedDreamsByUserId(@Param("userId") Long userId);
 }

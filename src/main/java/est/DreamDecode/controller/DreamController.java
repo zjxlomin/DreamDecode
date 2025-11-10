@@ -7,9 +7,13 @@ import est.DreamDecode.service.DreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -72,7 +76,8 @@ public class DreamController {
   @PostMapping("/api/dream")
   @ResponseBody
   public ResponseEntity<Dream> saveDream(@RequestBody DreamRequest request) {
-    request.setUserId(3l);
+    Long userId = getCurrentUserId();
+    request.setUserId(userId);
     Dream savedDream = dreamService.saveDream(request);
     return ResponseEntity.status(201).body(savedDream);// 201 Created, 저장된 객체 반환
   }
@@ -90,5 +95,39 @@ public class DreamController {
   public ResponseEntity<Void> deleteDream(@PathVariable("id") Long dreamId) {
     dreamService.deleteDream(dreamId);
     return ResponseEntity.noContent().build(); // 204 No Content
+  }
+
+  // 내가 쓴 꿈 기본(최신) 목록 - 기본 4개, limit 지정 가능
+  @GetMapping("/api/dream/my")
+  public ResponseEntity<List<DreamResponse>> getMyDreams(
+      @RequestParam(value = "limit", required = false) Integer limit) {
+    Long userId = getCurrentUserId();
+    int resolvedLimit = (limit == null || limit <= 0) ? 4 : limit;
+    List<DreamResponse> dreams = dreamService.getMyDreams(userId, resolvedLimit);
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  // 내가 쓴 꿈 전체 조회
+  @GetMapping("/api/dream/my/all")
+  public ResponseEntity<List<DreamResponse>> getMyAllDreams() {
+    Long userId = getCurrentUserId();
+    List<DreamResponse> dreams = dreamService.getMyAllDreams(userId);
+    return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
+  }
+
+  private Long getCurrentUserId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || authentication.getPrincipal() == null) {
+      throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
+    }
+
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof Long userId) {
+      return userId;
+    }
+    if (principal instanceof String principalStr) {
+      return Long.valueOf(principalStr);
+    }
+    throw new IllegalStateException("지원되지 않는 인증 주체 타입: " + principal.getClass());
   }
 }
