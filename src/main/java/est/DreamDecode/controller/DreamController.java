@@ -7,6 +7,7 @@ import est.DreamDecode.service.DreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class DreamController {
   private final DreamService dreamService;
+
+    private Long getUserId(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다.");
+        }
+        return (Long) authentication.getPrincipal(); // JwtTokenFilter 에서 넣어준 userId
+    }
 
   @GetMapping("/dream")
   public String getPublicDreams(Model model) {
@@ -71,8 +79,8 @@ public class DreamController {
   // 등록
   @PostMapping("/api/dream")
   @ResponseBody
-  public ResponseEntity<Dream> saveDream(@RequestBody DreamRequest request) {
-    request.setUserId(3l);
+  public ResponseEntity<Dream> saveDream(@RequestBody DreamRequest request, Authentication authentication) {
+    request.setUserId(getUserId(authentication));
     Dream savedDream = dreamService.saveDream(request);
     return ResponseEntity.status(201).body(savedDream);// 201 Created, 저장된 객체 반환
   }
