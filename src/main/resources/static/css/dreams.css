@@ -178,6 +178,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  color: #fff;
 }
 
 .dream-card .btn::before {
@@ -199,6 +200,7 @@
   background: linear-gradient(135deg, #50817e, #467370);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(100, 161, 157, 0.4);
+  color: #fff;
 }
 
 .dream-card .btn:focus {
