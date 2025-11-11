@@ -20,6 +20,22 @@ import java.util.List;
 public class DreamController {
   private final DreamService dreamService;
 
+  private Long getCurrentUserId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || authentication.getPrincipal() == null) {
+      throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
+    }
+
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof Long userId) {
+      return userId;
+    }
+    if (principal instanceof String principalStr) {
+      return Long.valueOf(principalStr);
+    }
+    throw new IllegalStateException("지원되지 않는 인증 주체 타입: " + principal.getClass());
+  }
+
   @GetMapping("/dream")
   public String getPublicDreams(Model model) {
     // 초기 로드는 첫 페이지(9개)만
@@ -113,21 +129,5 @@ public class DreamController {
     Long userId = getCurrentUserId();
     List<DreamResponse> dreams = dreamService.getMyAllDreams(userId);
     return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
-  }
-
-  private Long getCurrentUserId() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || authentication.getPrincipal() == null) {
-      throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
-    }
-
-    Object principal = authentication.getPrincipal();
-    if (principal instanceof Long userId) {
-      return userId;
-    }
-    if (principal instanceof String principalStr) {
-      return Long.valueOf(principalStr);
-    }
-    throw new IllegalStateException("지원되지 않는 인증 주체 타입: " + principal.getClass());
   }
 }
