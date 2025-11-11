@@ -592,3 +592,11 @@
     max-width: 300px;
   }
 }
+
+.help-icon {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: none;
+}
