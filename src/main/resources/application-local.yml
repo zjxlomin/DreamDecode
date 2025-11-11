@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # 로컬 개발 편의
+      ddl-auto: create   # 로컬 개발 편의
     properties:
       hibernate:
         # PostgreSQL은 최신부트에서 dialect 생략 가능하지만, 명시 원하시면 유지
