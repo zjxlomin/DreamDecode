@@ -1,26 +1,27 @@
 package est.DreamDecode.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import est.DreamDecode.domain.Analysis;
 import est.DreamDecode.domain.Dream;
 import est.DreamDecode.domain.Scene;
 import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.dto.SentimentResult;
+import est.DreamDecode.exception.DreamAnalysisException;
+import est.DreamDecode.exception.DreamNotFoundException;
 import est.DreamDecode.repository.AnalysisRepository;
 import est.DreamDecode.repository.DreamRepository;
 import est.DreamDecode.repository.SceneRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class AnalysisService {
     @Transactional
     public AnalysisResponse addOrUpdateAnalysis(Long dreamId, boolean isPost){
         Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new DreamNotFoundException(dreamId));
 
         if(!isPost) {
             sceneRepository.deleteByDreamId(dreamId); // 기존 장면 삭제 후 추가
@@ -41,39 +42,55 @@ public class AnalysisService {
 
         String dreamContent = dream.getContent();
         JSONObject dreamAnalysis = dreamAnalyzeByPython(dreamContent);
-
-        List<Object> scenes = dreamAnalysis.getJSONArray("analysis").toList();
-        for(Object s : scenes){
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> map = mapper.convertValue(s, Map.class);
-            String content = map.get("scene");
-            String emotion = map.get("emotion");
-            String interpretation = map.get("interpretation");
-            Scene scene = new Scene();
-            scene.setContent(content);
-            scene.setEmotion(emotion);
-            scene.setInterpretation(interpretation);
-            scene.setDream(dream);
-            sceneRepository.save(scene);
+        if(dreamAnalysis == null){
+            throw new DreamAnalysisException("Failed to analyze dream content from external service for dream id " + dreamId);
         }
-        String insight = dreamAnalysis.getString("insight");
-        String suggestion = dreamAnalysis.getString("suggestion");
-        
-        // JSON 배열을 쉼표로 구분된 문자열로 변환 (괄호 제거)
-        List<Object> categoriesList = dreamAnalysis.getJSONArray("categories").toList();
-        String categories = categoriesList.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(","));
-        
-        List<Object> tagsList = dreamAnalysis.getJSONArray("tags").toList();
-        String tags = tagsList.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(","));
-        
-        String summary = dreamAnalysis.getString("summary");
-        
+
+        String insight;
+        String suggestion;
+        String categories;
+        String tags;
+        String summary;
+        try {
+            JSONArray scenesArray = dreamAnalysis.getJSONArray("analysis");
+            for (int i = 0; i < scenesArray.length(); i++) {
+                JSONObject sceneJson = scenesArray.getJSONObject(i);
+                String content = sceneJson.getString("scene");
+                String emotion = sceneJson.getString("emotion");
+                String interpretation = sceneJson.getString("interpretation");
+                Scene scene = new Scene();
+                scene.setContent(content);
+                scene.setEmotion(emotion);
+                scene.setInterpretation(interpretation);
+                scene.setDream(dream);
+                sceneRepository.save(scene);
+            }
+            insight = dreamAnalysis.getString("insight");
+            suggestion = dreamAnalysis.getString("suggestion");
+
+            // JSON 배열을 쉼표로 구분된 문자열로 변환 (괄호 제거)
+            JSONArray categoriesArray = dreamAnalysis.getJSONArray("categories");
+            categories = IntStream.range(0, categoriesArray.length())
+                    .mapToObj(categoriesArray::getString)
+                    .collect(Collectors.joining(","));
+
+            JSONArray tagsArray = dreamAnalysis.getJSONArray("tags");
+            tags = IntStream.range(0, tagsArray.length())
+                    .mapToObj(tagsArray::getString)
+                    .collect(Collectors.joining(","));
+
+            summary = dreamAnalysis.getString("summary");
+        } catch (JSONException e) {
+            throw new DreamAnalysisException("Invalid analysis response for dream id " + dreamId, e);
+        }
+
         // GCP Natural Language API를 사용하여 꿈 내용의 실제 감정 분석 수행
-        SentimentResult sentimentResult = naturalLanguageService.analyzeSentiment(summary);
+        SentimentResult sentimentResult;
+        try {
+            sentimentResult = naturalLanguageService.analyzeSentiment(summary);
+        } catch (RuntimeException e) {
+            throw new DreamAnalysisException("Failed to analyze sentiment for dream id " + dreamId, e);
+        }
         double sentiment = sentimentResult.getScore();
         double magnitude = sentimentResult.getMagnitude();
 
