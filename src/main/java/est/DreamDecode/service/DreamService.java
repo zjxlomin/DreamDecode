@@ -4,6 +4,7 @@ import est.DreamDecode.domain.Dream;
 import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
+import est.DreamDecode.exception.DreamNotFoundException;
 import est.DreamDecode.repository.DreamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +77,7 @@ public class DreamService {
 
   public DreamResponse getDreamById(Long id) {
     Dream dream = dreamRepository.findById(id)
-                         .orElseThrow(() -> new RuntimeException("Dream not found with id " + id));
+                         .orElseThrow(() -> new DreamNotFoundException(id));
     return DreamResponse.from(dream);
   }
 
@@ -93,9 +93,9 @@ public class DreamService {
   @Transactional
   public DreamResponse updateDream(Long dreamId, DreamRequest request) {
     Dream dream = dreamRepository.findById(dreamId)
-                          .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
+                          .orElseThrow(() -> new DreamNotFoundException(dreamId));
 
-    boolean contentUpdated = !dream.getContent().equals(request.getContent());
+    boolean contentUpdated = request.getContent() != null && !dream.getContent().equals(request.getContent());
 
     // DTO에서 가져온 값으로 엔티티 업데이트
     if (request.getTitle() != null) {
