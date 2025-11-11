@@ -5,6 +5,8 @@ import est.DreamDecode.domain.User;
 import est.DreamDecode.dto.ResetPasswordRequest;
 import est.DreamDecode.dto.SignupRequest;
 import est.DreamDecode.dto.UpdateProfileRequest;
+import est.DreamDecode.dto.UserProfileResponse;
+import est.DreamDecode.repository.DreamRepository;
 import est.DreamDecode.repository.RefreshTokenRepository;
 import est.DreamDecode.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final DreamRepository dreamRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -79,9 +82,15 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    @Transactional
+    public UserProfileResponse getUserProfileResponse(Long userId) {
+        User user = getUser(userId);
+        return mapToProfileResponse(user);
+    }
+
     /** 내 정보 수정 (이름/성별/생년월일) */
     @Transactional
-    public User updateProfile(Long userId, UpdateProfileRequest req) {
+    public UserProfileResponse updateProfile(Long userId, UpdateProfileRequest req) {
         if (req.birthday().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("생년월일은 오늘 이후일 수 없습니다.");
         }
@@ -91,7 +100,7 @@ public class UserService {
         user.setBirthday(req.birthday());
         user.setGender(req.gender());
         // save 호출 안 해도 트랜잭션 안에서 dirty checking으로 반영됨, 그래도 명시적으로 해도 무관
-        return user;
+        return mapToProfileResponse(user);
     }
 
     // ================= 현재 비밀번호 확인 / 변경 =================
@@ -131,5 +140,13 @@ public class UserService {
         if (!pw.matches("^(?=.*[A-Za-z])(?=.*\\d).+$")) {
             throw new IllegalArgumentException("비밀번호는 영문과 숫자를 모두 포함해야 합니다.");
         }
+    }
+
+    private UserProfileResponse mapToProfileResponse(User user) {
+        Long userId = user.getId();
+        int total = (int) dreamRepository.countByUserId(userId);
+        int published = (int) dreamRepository.countByUserIdAndPublishedTrue(userId);
+        int analyzed = (int) dreamRepository.countAnalyzedDreamsByUserId(userId);
+        return UserProfileResponse.of(user, total, published, analyzed);
     }
 }

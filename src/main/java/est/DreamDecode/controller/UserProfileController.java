@@ -1,7 +1,6 @@
 // src/main/java/est/DreamDecode/controller/UserProfileController.java
 package est.DreamDecode.controller;
 
-import est.DreamDecode.domain.User;
 import est.DreamDecode.dto.*;
 import est.DreamDecode.service.UserService;
 import jakarta.validation.Valid;
@@ -28,8 +27,7 @@ public class UserProfileController {
     @GetMapping
     public ResponseEntity<UserProfileResponse> getMe(Authentication authentication) {
         Long userId = getUserId(authentication);
-        User user = userService.getUser(userId);
-        return ResponseEntity.ok(UserProfileResponse.from(user));
+        return ResponseEntity.ok(userService.getUserProfileResponse(userId));
     }
 
     /** 내 정보 수정 (이름/성별/생년월일) */
@@ -39,8 +37,8 @@ public class UserProfileController {
             @RequestBody @Valid UpdateProfileRequest body
     ) {
         Long userId = getUserId(authentication);
-        User updated = userService.updateProfile(userId, body);
-        return ResponseEntity.ok(UserProfileResponse.from(updated));
+        UserProfileResponse updated = userService.updateProfile(userId, body);
+        return ResponseEntity.ok(updated);
     }
 
     /** 현재 비밀번호 확인 */
