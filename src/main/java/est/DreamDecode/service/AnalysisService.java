@@ -19,6 +19,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -51,6 +52,7 @@ public class AnalysisService {
         String categories;
         String tags;
         String summary;
+        List<Scene> scenesToPersist = new ArrayList<>();
         try {
             JSONArray scenesArray = dreamAnalysis.getJSONArray("analysis");
             for (int i = 0; i < scenesArray.length(); i++) {
@@ -63,7 +65,10 @@ public class AnalysisService {
                 scene.setEmotion(emotion);
                 scene.setInterpretation(interpretation);
                 scene.setDream(dream);
-                sceneRepository.save(scene);
+                scenesToPersist.add(scene);
+            }
+            if (!scenesToPersist.isEmpty()) {
+                sceneRepository.saveAll(scenesToPersist);
             }
             insight = dreamAnalysis.getString("insight");
             suggestion = dreamAnalysis.getString("suggestion");
@@ -137,9 +142,8 @@ public class AnalysisService {
     }
 
     public Analysis getAnalysisByDreamId(Long dreamId){
-        return analysisRepository.findAll()
-                .stream().filter(a -> a.getDream().getId().equals(dreamId))
-                .toList().get(0);
+        return analysisRepository.findByDreamId(dreamId)
+                .orElseThrow(() -> new DreamAnalysisException("No analysis found for dream id " + dreamId));
     }
 
     // 프롬프트
