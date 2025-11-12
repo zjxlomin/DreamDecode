@@ -78,13 +78,16 @@
                         <div class="dream-meta mb-2"
                              th:if="${dream.categories != null and !dream.categories.isEmpty()}">
                             <div class="dream-categories">
-                                <span class="category-badge" th:each="category : ${dream.categories}"
-                                      th:text="${category}">카테고리</span>
+                                <button id="category" class="category-badge" style="border: none;" th:each="category : ${dream.categories}"
+                                    th:text="${category}" th:value="${category}" onclick="searchByCatOrTag(this.value, 1)">
+                                    카테고리
+                                </button>
                             </div>
                         </div>
                         <p class="card-text" th:text="${dream.content}">꿈 내용</p>
                         <div class="dream-tags mt-3" th:if="${dream.tags != null and !dream.tags.isEmpty()}">
-                            <button type="button" class="tag-btn" th:each="tag : ${dream.tags}" th:text="'#' + ${tag}">
+                            <button id="tag" class="tag-btn" th:each="tag : ${dream.tags}"
+                                    th:text="'#' + ${tag}" th:value="${tag}" onclick="searchByCatOrTag(this.value, 2)">
                                 #태그
                             </button>
                         </div>
