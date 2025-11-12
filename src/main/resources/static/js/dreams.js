@@ -395,6 +395,7 @@ $(document).ready(function() {
 
         const $card = $(this).closest('.dream-card');
         const dreamId = $card.attr('data-dream-id');
+        const userId = Number($card.attr('data-user-id'));
         if (!dreamId) return;
 
         try {
@@ -411,7 +412,33 @@ $(document).ready(function() {
             }
         } catch (err) {
             console.error(err);
-            alert('상세 조회 중 오류가 발생했습니다.');
+            if(getUserIdFromToken() === userId) {
+                if(!confirm("분석 결과를 찾을 수 없습니다. 다시 분석하시겠습니까?")) return;
+
+                this.disabled = true;
+                this.textContent = '분석 중...';
+                try {
+                    const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    if (!analysisRes.ok) {
+                        const msg = await analysisRes.text();
+                        throw new Error(msg || '분석 실패');
+                    }
+                    alert('꿈 분석이 완료되었습니다.');
+                    this.disabled = false;
+                    window.location.reload();
+                }
+                catch (e) {
+                    this.disabled = false;
+                    console.error(e);
+                    alert('오류가 발생했습니다: ' + (e.message || e));
+                }
+            }
+            else {
+                alert('상세 조회 중 오류가 발생했습니다.');
+            }
         }
     });
 

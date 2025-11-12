@@ -219,7 +219,28 @@
         }
       } catch (err) {
         console.error(err);
-        alert('상세 조회 중 오류가 발생했습니다.');
+          if(!confirm("분석 결과를 찾을 수 없습니다. 다시 분석하시겠습니까?")) return;
+
+          this.disabled = true;
+          this.textContent = '분석 중...';
+          try {
+              const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, {
+                  method: 'POST',
+                  credentials: 'include'
+              });
+              if (!analysisRes.ok) {
+                  const msg = await analysisRes.text();
+                  throw new Error(msg || '분석 실패');
+              }
+              alert('꿈 분석이 완료되었습니다.');
+              this.disabled = false;
+              window.location.reload();
+          }
+          catch (e) {
+              this.disabled = false;
+              console.error(e);
+              alert('오류가 발생했습니다: ' + (e.message || e));
+          }
       } finally {
         toggleViewModalLoading(false);
       }
@@ -455,6 +476,7 @@
         .addClass('btn btn-view-dream btn-sm my-dream-view-btn')
         .attr('type', 'button')
         .attr('data-dream-id', dream.id || '')
+          .attr('data-user-id', dream.userId || '')
         .text('자세히 보기')
         .appendTo($actions);
 

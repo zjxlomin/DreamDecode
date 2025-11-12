@@ -72,7 +72,7 @@
 
         <div class="row g-4" id="dreamsContainer" th:if="${dreams} != null">
             <div class="col-md-4" th:each="dream : ${dreams}">
-                <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}">
+                <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}, data-user-id=${dream.userId}">
                     <div class="card-body">
                         <h5 class="card-title" th:text="${dream.title}">꿈 제목</h5>
                         <div class="dream-meta mb-2"
@@ -93,7 +93,7 @@
                         </div>
                     </div>
                     <div class="card-footer text-center">
-                        <a href="#" class="btn btn-primary btn-sm">자세히 보기</a>
+                        <button class="btn btn-primary btn-sm">자세히 보기</button>
                     </div>
                 </div>
             </div>
