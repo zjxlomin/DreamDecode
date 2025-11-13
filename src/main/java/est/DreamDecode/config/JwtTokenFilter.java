@@ -52,12 +52,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
-        // 1. Authorization 헤더에서 토큰 확인 (API 호출용)
-        String token = resolveBearer(req);
+        // 1. 쿠키에서 토큰 확인 (HttpOnly 쿠키로 XSS 방지)
+        String token = resolveCookie(req, "DD_AT");
         
-        // 2. 헤더에 없으면 쿠키에서 확인 (페이지 접근용)
+        // 2. 쿠키에 없으면 Authorization 헤더에서 확인 (API 클라이언트 호환성)
         if (token == null) {
-            token = resolveCookie(req, "DD_AT");
+            token = resolveBearer(req);
         }
 
         if (token != null && jwt.validate(token) && jwt.isAccessToken(token)) {
