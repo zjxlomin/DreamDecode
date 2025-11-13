@@ -39,7 +39,12 @@ $(document).ready(function() {
     function renderCategories(categories) {
         if (!categories || categories.length === 0) return '';
         return '<div class="dream-meta mb-2"><div class="dream-categories">' +
-            categories.map(cat => `<span class="category-badge">${escapeHtml(cat)}</span>`).join('') +
+            categories.map(cat => `
+                <button id="category" class="category-badge" style="border: none;"
+                    value="${escapeHtml(cat)}" onclick="searchByCatOrTag(this.value, 1)">
+                    ${escapeHtml(cat)}
+                </button>
+            `).join('') +
             '</div></div>';
     }
 
@@ -47,7 +52,12 @@ $(document).ready(function() {
     function renderTags(tags) {
         if (!tags || tags.length === 0) return '';
         return '<div class="dream-tags mt-3">' +
-            tags.map(tag => `<button type="button" class="tag-btn">#${escapeHtml(tag)}</button>`).join('') +
+            tags.map(tag => `
+                <button id="tag" class="tag-btn"
+                    value="${escapeHtml(tag)}" onclick="searchByCatOrTag(this.value, 2)">
+                    #${escapeHtml(tag)}
+                </button>
+            `).join('') +
             '</div>';
     }
 
@@ -215,9 +225,11 @@ $(document).ready(function() {
         const categoriesArray = parseArrayField(data.categories);
         if (categoriesArray.length > 0) {
             const html = categoriesArray.map(cat => `
-                <span class="col category-badge" style="max-width: max-content; margin: 4px;">
+                <button id="category" class="col category-badge" style="max-width: max-content; margin: 4px; border: none;"
+                    value="${escapeHtml(cat)}" data-bs-dismiss="modal"
+                    onclick="searchByCatOrTag(this.value, 1)">
                     ${escapeHtml(cat)}
-                </span>
+                </button>
             `).join('');
             $('#detailCategories').html(html);
         } else {
@@ -228,7 +240,9 @@ $(document).ready(function() {
         const tagsArray = parseArrayField(data.tags);
         if (tagsArray.length > 0) {
             const html = tagsArray.map(tag => `
-                <button type="button" class="col tag-btn" style="max-width: max-content; margin: 4px;">
+                <button id="tag" class="col tag-btn" style="max-width: max-content; margin: 4px;"
+                    value="${escapeHtml(tag)}" data-bs-dismiss="modal"
+                    onclick="searchByCatOrTag(this.value, 2)">
                     #${escapeHtml(tag)}
                 </button>
             `).join('');
@@ -381,6 +395,7 @@ $(document).ready(function() {
 
         const $card = $(this).closest('.dream-card');
         const dreamId = $card.attr('data-dream-id');
+        const userId = Number($card.attr('data-user-id'));
         if (!dreamId) return;
 
         try {
@@ -397,7 +412,33 @@ $(document).ready(function() {
             }
         } catch (err) {
             console.error(err);
-            alert('상세 조회 중 오류가 발생했습니다.');
+            if(getUserIdFromToken() === userId) {
+                if(!confirm("분석 결과를 찾을 수 없습니다. 다시 분석하시겠습니까?")) return;
+
+                this.disabled = true;
+                this.textContent = '분석 중...';
+                try {
+                    const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    if (!analysisRes.ok) {
+                        const msg = await analysisRes.text();
+                        throw new Error(msg || '분석 실패');
+                    }
+                    alert('꿈 분석이 완료되었습니다.');
+                    this.disabled = false;
+                    window.location.reload();
+                }
+                catch (e) {
+                    this.disabled = false;
+                    console.error(e);
+                    alert('오류가 발생했습니다: ' + (e.message || e));
+                }
+            }
+            else {
+                alert('상세 조회 중 오류가 발생했습니다.');
+            }
         }
     });
 
@@ -621,4 +662,19 @@ $(document).ready(function() {
         $(this).addClass('d-none');
         window.location.reload();
     });
+
+    // 카테고리, 태그 클릭으로 검색
+    window.searchByCatOrTag = function(name, type){
+        $('.search-tab').removeClass('active');
+        if(type === 1){ // 카테고리로 검색
+            $('.search-tab[data-search-type="category"]').addClass('active');
+            currentSearchType = 'category';
+        }
+        if(type === 2){ // 태그로 검색
+            $('.search-tab[data-search-type="tag"]').addClass('active');
+            currentSearchType = 'tag';
+        }
+        $searchInput.val(name);
+        performSearch();
+    }
 });
