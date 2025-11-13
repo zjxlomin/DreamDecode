@@ -1,10 +1,11 @@
-/* global $, getAccessToken */
+/* global $ */
 
 (function () {
   const DEFAULT_LIMIT = 4;
   let pwChangeVerified = false;
-  let accessToken = null;
   let isAllDreamsLoaded = false;
+  let cachedUserId = null;
+  let isFetchingUserId = false;
 
   const $dreamList = $('#myDreamList');
   const $dreamEmptyState = $('#myDreamEmptyState');
@@ -18,27 +19,33 @@
   const $cancelEditBtn = $('#cancelEditBtn');
 
   function init() {
-    accessToken = getAccessToken();
-
-    if (!accessToken) {
-      alert('로그인이 필요합니다.');
-      window.location.href = '/';
-      return;
-    }
-
+    // HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API로 인증 확인
     $.ajaxSetup({
       xhrFields: {
-        withCredentials: true
+        withCredentials: true  // 쿠키 자동 전송 (HttpOnly 쿠키 포함)
       }
     });
 
-    setBirthdayMax();
-    bindProfileForm();
-    bindPasswordModal();
-    bindDreamActions();
+    // 인증 확인
+    $.ajax({
+      url: '/api/users/me',
+      method: 'GET',
+      success: function() {
+        // 인증 성공
+        setBirthdayMax();
+        bindProfileForm();
+        bindPasswordModal();
+        bindDreamActions();
 
-    fetchProfile();
-    fetchMyDreams(false);
+        fetchProfile();
+        fetchMyDreams(false);
+      },
+      error: function() {
+        // 인증 실패
+        alert('로그인이 필요합니다.');
+        window.location.href = '/';
+      }
+    });
   }
 
   function setBirthdayMax() {
@@ -63,7 +70,6 @@
         url: '/api/users/me',
         method: 'PUT',
         contentType: 'application/json',
-        beforeSend: addAuthHeader,
         data: JSON.stringify({
           name,
           birthday,
@@ -112,7 +118,6 @@
         url: '/api/users/me/check-password',
         method: 'POST',
         contentType: 'application/json',
-        beforeSend: addAuthHeader,
         data: JSON.stringify({ currentPassword: currentPw }),
         success: function (res) {
           pwChangeVerified = true;
@@ -168,7 +173,6 @@
         url: '/api/users/me/change-password',
         method: 'POST',
         contentType: 'application/json',
-        beforeSend: addAuthHeader,
         data: JSON.stringify({
           currentPassword: currentPw,
           newPassword: newPw
@@ -337,7 +341,6 @@
     $.ajax({
       url: '/api/users/me',
       method: 'GET',
-      beforeSend: addAuthHeader,
       success: function (res) {
         $('#profileEmail').val(res.email || '');
         $('#profileName').val(res.name || '');
@@ -383,7 +386,6 @@
     $.ajax({
       url,
       method: 'GET',
-      beforeSend: addAuthHeader,
       success: function (res) {
         const dreams = Array.isArray(res) ? res : [];
         renderDreamList(dreams);
@@ -575,37 +577,52 @@
 
     switchModalMode('view');
 
-    const currentUserId = getUserIdFromToken();
+    // HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API로 사용자 ID 확인
     const dreamUserId = data.userId ? parseInt(data.userId, 10) : null;
-    const isOwner = currentUserId !== null && dreamUserId !== null && currentUserId === dreamUserId;
+    getCurrentUserId(function(currentUserId) {
+      const isOwner = currentUserId !== null && dreamUserId !== null && currentUserId === dreamUserId;
 
-    if (isOwner) {
-      $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').removeClass('d-none');
-    } else {
-      $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').addClass('d-none');
-    }
+      if (isOwner) {
+        $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').removeClass('d-none');
+      } else {
+        $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').addClass('d-none');
+      }
+    });
   }
 
-  function getUserIdFromToken() {
-    try {
-      const cookies = document.cookie.split(';');
-      let token = null;
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'DD_AT') {
-          token = value;
-          break;
-        }
-      }
-      if (!token) return null;
-      const payload = token.split('.')[1];
-      if (!payload) return null;
-      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-      return decoded.sub ? parseInt(decoded.sub, 10) : null;
-    } catch (e) {
-      console.error('토큰 파싱 실패:', e);
-      return null;
+  // 현재 로그인한 사용자 ID 가져오기 (서버 API 호출)
+  function getCurrentUserId(callback) {
+    // 캐시된 값이 있으면 즉시 반환
+    if (cachedUserId !== null) {
+      callback(cachedUserId);
+      return;
     }
+    
+    // 이미 요청 중이면 대기
+    if (isFetchingUserId) {
+      setTimeout(function() {
+        getCurrentUserId(callback);
+      }, 100);
+      return;
+    }
+    
+    isFetchingUserId = true;
+    
+    $.ajax({
+      url: '/api/users/me',
+      method: 'GET',
+      success: function(data) {
+        // UserProfileResponse의 id 필드 사용
+        cachedUserId = data.id || null;
+        isFetchingUserId = false;
+        callback(cachedUserId);
+      },
+      error: function() {
+        cachedUserId = null;
+        isFetchingUserId = false;
+        callback(null);
+      }
+    });
   }
 
   function setButtonsDisabled(disabled, ...ids) {
@@ -658,11 +675,7 @@
     updateDreamDetailModal(data);
   }
 
-  function addAuthHeader(xhr) {
-    if (accessToken) {
-      xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-    }
-  }
+  // addAuthHeader 함수 제거: HttpOnly 쿠키가 자동으로 전송되므로 불필요
 
   function formatDateTime(value) {
     if (!value) {
