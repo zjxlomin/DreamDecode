@@ -1,6 +1,8 @@
 // ===== 전역 상수 / 함수 =====
 let lastSignupEmail = null;
 let pwResetVerified = false;
+let isCheckingAuth = false; // 인증 확인 중 플래그 (무한 루프 방지)
+let authCheckShown = false; // 인증 만료 알림 표시 여부 (한 번만 표시)
 
 // 비밀번호 규칙: 8~20자, 영문 + 숫자
 function validatePasswordRules(pw) {
@@ -14,42 +16,38 @@ function validatePasswordRules(pw) {
     return '';
 }
 
-function getAccessToken() {
-    // [localStorage 방식]
-    // return localStorage.getItem('dd_at');
+// HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API로 인증 상태 확인
+function updateAuthUI(showLoginModal) {
+    // 무한 루프 방지: 이미 확인 중이면 중복 호출 방지
+    if (isCheckingAuth) return;
     
-    // [쿠키 방식]
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'DD_AT') {
-            return value;
+    isCheckingAuth = true;
+    
+    // 서버에 인증 상태 확인 요청 (쿠키가 자동으로 전송됨)
+    $.ajax({
+        url: '/api/users/me',
+        method: 'GET',
+        success: function() {
+            // 인증 성공
+            $('#navLogin, #navSignup').addClass('d-none');
+            $('#navMyPage, #navLogout').removeClass('d-none');
+            $('#createDreamBtn').removeClass('d-none');
+            authCheckShown = false; // 성공 시 플래그 리셋
+            isCheckingAuth = false;
+        },
+        error: function() {
+            // 인증 실패 또는 미로그인
+            $('#navLogin, #navSignup').removeClass('d-none');
+            $('#navMyPage, #navLogout').addClass('d-none');
+            $('#createDreamBtn').addClass('d-none');
+            isCheckingAuth = false;
+            
+            // 로그인 모달 표시 요청이 있으면 표시
+            if (showLoginModal) {
+                showModalById('loginModal');
+            }
         }
-    }
-    return null;
-}
-
-function setAccessToken(token) {
-    // [localStorage 방식]
-    // if (token) localStorage.setItem('dd_at', token);
-    // else localStorage.removeItem('dd_at');
-    
-    // [쿠키 방식] 서버가 쿠키로 관리하므로 아무 작업 안 함
-}
-
-function updateAuthUI() {
-    const loggedIn = !!getAccessToken();
-    if (loggedIn) {
-        $('#navLogin, #navSignup').addClass('d-none');
-        $('#navMyPage, #navLogout').removeClass('d-none');
-        // dreams 페이지의 꿈 등록 버튼 표시
-        $('#createDreamBtn').removeClass('d-none');
-    } else {
-        $('#navLogin, #navSignup').removeClass('d-none');
-        $('#navMyPage, #navLogout').addClass('d-none');
-        // dreams 페이지의 꿈 등록 버튼 숨김
-        $('#createDreamBtn').addClass('d-none');
-    }
+    });
 }
 
 // 모달 show/hide 헬퍼
@@ -72,16 +70,14 @@ function hideModalById(id) {
 $(function () {
 
     // Ajax 공통 설정
+    // HttpOnly 쿠키는 자동으로 전송되므로 withCredentials만 설정
+    // Authorization 헤더는 필요 없음 (쿠키에서 자동으로 인증됨)
     $.ajaxSetup({
         xhrFields: {
-            withCredentials: true  // 쿠키 자동 전송
-        },
-        beforeSend: function (xhr, settings) {
-            const token = getAccessToken();
-            if (token) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-            }
+            withCredentials: true  // 쿠키 자동 전송 (HttpOnly 쿠키 포함)
         }
+        // Authorization 헤더 설정 제거: HttpOnly 쿠키가 자동으로 전송되므로 불필요
+        // 필요시 JwtTokenFilter에서 Authorization 헤더도 지원하므로 호환성 유지
     });
 
     $(document).ajaxError(function (event, xhr, settings) {
@@ -89,17 +85,26 @@ $(function () {
         if (status !== 401 && status !== 403) return;
 
         const url = (settings && settings.url) || '';
+        // 인증 관련 공개 API는 제외
         if (
             url.startsWith('/api/auth/login') ||
             url.startsWith('/api/auth/refresh') ||
             url.startsWith('/api/users/signup') ||
-            url.startsWith('/api/email/')
+            url.startsWith('/api/email/') ||
+            url.startsWith('/api/password/')
         ) return;
+        
+        // updateAuthUI()에서 호출하는 /api/users/me는 제외 (무한 루프 방지)
+        if (url === '/api/users/me') return;
 
-        console.warn(status + ' 응답 감지 → 토큰 만료 또는 인증 실패. 자동 로그아웃 처리.', url);
-        // [localStorage 방식] setAccessToken(null);
-        updateAuthUI();
-        alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
+        // 알림을 한 번만 표시
+        if (!authCheckShown) {
+            authCheckShown = true;
+            console.warn(status + ' 응답 감지 → 토큰 만료 또는 인증 실패. 자동 로그아웃 처리.', url);
+            alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
+            // UI 업데이트 및 로그인 모달 표시
+            updateAuthUI(true);
+        }
     });
 
     // 회원가입 생년월일 max 오늘
@@ -244,8 +249,9 @@ $(function () {
             contentType: 'application/json',
             data: JSON.stringify({ email, password }),
             success: function (res) {
-                // [localStorage 방식] setAccessToken(res.accessToken);
-                updateAuthUI();
+                // 쿠키가 자동으로 설정되므로 별도 처리 불필요
+                authCheckShown = false; // 로그인 성공 시 플래그 리셋
+                updateAuthUI(false);
                 alert('로그인에 성공했습니다.');
                 hideModalById('loginModal');
                 $('#loginPassword').val('');
@@ -425,21 +431,15 @@ $(function () {
     $('#logoutLink').on('click', function (e) {
         e.preventDefault();
 
-        const token = getAccessToken();
-        if (!token) {
-            updateAuthUI();
-            return;
-        }
-
         $.ajax({
             url: '/api/auth/logout',
             method: 'POST',
             complete: function () {
-                // [localStorage 방식] setAccessToken(null);
-                updateAuthUI();
+                // 쿠키는 서버에서 삭제되므로 클라이언트에서 별도 처리 불필요
+                authCheckShown = false; // 로그아웃 시 플래그 리셋
+                updateAuthUI(false);
                 alert('로그아웃 되었습니다.');
                 window.location.href = '/';
-
             }
         });
     });

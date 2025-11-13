@@ -37,10 +37,10 @@ public class AuthController {
     ) {
         try {
             var tokens = authService.login(req.email(), req.password());
-            // RT는 HttpOnly 쿠키 (보안 - JavaScript 접근 불가)
+            // RT와 AT 모두 HttpOnly 쿠키로 저장 (XSS 공격 방지)
             CookieUtil.addHttpOnlyCookie(res, RT_COOKIE, tokens.refreshToken(), RT_MAX_AGE);
-            // AT는 일반 쿠키 (JavaScript에서 읽기 가능 - 버튼 표시 등에 필요)
-            CookieUtil.addCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
+            CookieUtil.addHttpOnlyCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
+            // Authorization 헤더 방식도 지원하므로 응답 body에 토큰 포함 (선택적)
             return ResponseEntity.ok(new AuthResponse(tokens.accessToken()));
         } catch (EmailNotVerifiedException e) {
             return ResponseEntity.status(401)
@@ -64,9 +64,9 @@ public class AuthController {
         if (rt == null) return ResponseEntity.status(401).build();
 
         var tokens = authService.refresh(rt);
-        // RT와 AT 모두 쿠키 갱신
+        // RT와 AT 모두 HttpOnly 쿠키로 갱신
         CookieUtil.addHttpOnlyCookie(res, RT_COOKIE, tokens.refreshToken(), RT_MAX_AGE);
-        CookieUtil.addCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
+        CookieUtil.addHttpOnlyCookie(res, AT_COOKIE, tokens.accessToken(), AT_MAX_AGE);
         return ResponseEntity.ok(new AuthResponse(tokens.accessToken()));
     }
 
@@ -80,8 +80,9 @@ public class AuthController {
                 authService.logout(userId);
             } catch (Exception ignored) {}
         }
+        // RT와 AT 모두 HttpOnly 쿠키로 삭제
         CookieUtil.deleteCookie(res, RT_COOKIE);
-        CookieUtil.deleteNormalCookie(res, AT_COOKIE);
+        CookieUtil.deleteCookie(res, AT_COOKIE);
         return ResponseEntity.noContent().build();
     }
 
