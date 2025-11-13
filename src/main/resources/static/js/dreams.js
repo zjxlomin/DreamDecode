@@ -17,12 +17,17 @@ $(document).ready(function() {
 
     // 로그인 상태 확인하여 꿈 등록 버튼 표시
     function checkLoginAndShowCreateButton() {
-        const token = getUserIdFromToken();
-        if (token) {
-            $('#createDreamBtn').removeClass('d-none');
-        } else {
-            $('#createDreamBtn').addClass('d-none');
-        }
+        // HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API로 확인
+        $.ajax({
+            url: '/api/users/me',
+            method: 'GET',
+            success: function() {
+                $('#createDreamBtn').removeClass('d-none');
+            },
+            error: function() {
+                $('#createDreamBtn').addClass('d-none');
+            }
+        });
     }
 
     // 페이지 로드 시 버튼 표시 확인
@@ -143,35 +148,57 @@ $(document).ready(function() {
         });
     }
 
-    // JWT 토큰에서 userId 추출
-    function getUserIdFromToken() {
-        try {
-            // [localStorage 방식]
-            // const token = localStorage.getItem('dd_at');
-            
-            // [쿠키 방식]
-            const cookies = document.cookie.split(';');
-            let token = null;
-            for (let cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === 'DD_AT') {
-                    token = value;
-                    break;
-                }
-            }
-            
-            if (!token) return null;
-
-            const payload = token.split('.')[1];
-            if (!payload) return null;
-
-            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-            return decoded.sub ? parseInt(decoded.sub) : null;
-        } catch (e) {
-            console.error('토큰 파싱 실패:', e);
-            return null;
+    // 현재 로그인한 사용자 ID 가져오기 (서버 API 호출)
+    // HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버에서 확인
+    let cachedUserId = null;
+    let isFetchingUserId = false;
+    
+    function getCurrentUserId(callback) {
+        // 캐시된 값이 있으면 즉시 반환
+        if (cachedUserId !== null) {
+            callback(cachedUserId);
+            return;
         }
+        
+        // 이미 요청 중이면 대기
+        if (isFetchingUserId) {
+            // 간단한 폴링으로 대기 (실제로는 Promise를 사용하는 것이 좋지만 jQuery 환경)
+            setTimeout(function() {
+                getCurrentUserId(callback);
+            }, 100);
+            return;
+        }
+        
+        isFetchingUserId = true;
+        
+        $.ajax({
+            url: '/api/users/me',
+            method: 'GET',
+            success: function(data) {
+                // UserProfileResponse의 id 필드 사용
+                cachedUserId = data.id || null;
+                isFetchingUserId = false;
+                callback(cachedUserId);
+            },
+            error: function() {
+                cachedUserId = null;
+                isFetchingUserId = false;
+                callback(null);
+            }
+        });
     }
+    
+    // 캐시 초기화 함수 (로그인/로그아웃 시 호출)
+    function clearUserIdCache() {
+        cachedUserId = null;
+    }
+    
+    // 로그인/로그아웃 이벤트 감지하여 캐시 초기화
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        if (settings.url === '/api/auth/login' || settings.url === '/api/auth/logout') {
+            clearUserIdCache();
+        }
+    });
 
     // 문자열/배열을 배열로 변환 (categories, tags 공통 처리)
     function parseArrayField(field) {
@@ -259,24 +286,26 @@ $(document).ready(function() {
         }
 
         // 작성자와 현재 로그인 사용자 비교하여 버튼 표시/숨김 처리
-        const currentUserId = getUserIdFromToken();
         const dreamUserId = data.userId ? parseInt(data.userId) : null;
+        
+        // HttpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API로 사용자 ID 확인
+        getCurrentUserId(function(currentUserId) {
+            console.log('=== 버튼 표시 확인 ===');
+            console.log('currentUserId (서버 API):', currentUserId, typeof currentUserId);
+            console.log('dreamUserId (data.userId):', dreamUserId, typeof dreamUserId);
+            console.log('data.userId (원본):', data.userId);
 
-        console.log('=== 버튼 표시 확인 ===');
-        console.log('currentUserId (JWT sub):', currentUserId, typeof currentUserId);
-        console.log('dreamUserId (data.userId):', dreamUserId, typeof dreamUserId);
-        console.log('data.userId (원본):', data.userId);
+            const isOwner = currentUserId !== null && dreamUserId !== null && currentUserId === dreamUserId;
+            console.log('isOwner:', isOwner);
 
-        const isOwner = currentUserId !== null && dreamUserId !== null && currentUserId === dreamUserId;
-        console.log('isOwner:', isOwner);
-
-        if (isOwner) {
-            $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').removeClass('d-none');
-            console.log('버튼 표시됨');
-        } else {
-            $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').addClass('d-none');
-            console.log('버튼 숨김됨');
-        }
+            if (isOwner) {
+                $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').removeClass('d-none');
+                console.log('버튼 표시됨');
+            } else {
+                $('#deleteDreamBtn, #editDreamBtn, #reAnalyzeBtn').addClass('d-none');
+                console.log('버튼 숨김됨');
+            }
+        });
     }
 
     // 모달 모드 전환 (보기 <-> 편집)
