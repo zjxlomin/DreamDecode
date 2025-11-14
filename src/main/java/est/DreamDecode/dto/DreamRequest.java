@@ -1,5 +1,6 @@
 package est.DreamDecode.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import est.DreamDecode.domain.Dream;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,14 +16,14 @@ public class DreamRequest {
   private String content;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
-  private boolean isPublic;
+  private boolean published;
 
   public Dream toEntity() {
     Dream dream = Dream.builder()
                           .userId(this.getUserId())
                           .title(this.getTitle())
                           .content(this.getContent())
-                          .isPublic(this.isPublic())
+                          .published(this.isPublished())
                           .build();
     return dream;
   }

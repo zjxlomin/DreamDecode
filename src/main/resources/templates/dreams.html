@@ -1,202 +1,294 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Grayscale - Start Bootstrap Theme</title>
-        <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico" />
-        <!-- Font Awesome icons (free version)-->
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="../static/css/dreams.css" rel="stylesheet" />
-    </head>
-    <body id="page-top">
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="#page-top">Dream Decode</a>
-                <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    Menu
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#signup">Contact</a></li>
-                    </ul>
-                </div>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>Dreams | Dream Decode</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" th:href="@{/images/favicon.ico}"/>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}"/>
+</head>
+<body id="page-top">
+<!-- Navigation -->
+<div th:replace="~{fragments/nav :: nav(false)}"></div>
+<header class="masthead">
+    <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+        <div class="d-flex justify-content-center">
+            <div class="text-center">
+                <h1 class="mx-auto my-0 text-uppercase">Dream List</h1>
+                <h2 class="text-white-50 mx-auto mt-2 mb-5">"Discover the dreams of various people"</h2>
             </div>
-        </nav>
-        <!-- Masthead-->
-        <header class="masthead">
-            <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
-                <div class="d-flex justify-content-center">
-                    <div class="text-center">
-                        <h1 class="mx-auto my-0 text-uppercase">Dream Decode</h1>
-                        <h2 class="text-white-50 mx-auto mt-2 mb-5">"Decode the meaning behind your dreams."</h2>
-                        <a class="btn btn-primary" href="#about">Get Started</a>
-                    </div>
+        </div>
+    </div>
+</header>
+
+<!-- 꿈 등록 버튼 + 목록 카드 -->
+<section class="py-5 bg-light" id="dreams">
+    <div class="container">
+        <div class="section-header d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0 section-title">Dream List</h3>
+            <button type="button" class="btn btn-primary btn-sm section-action d-none" id="createDreamBtn"
+                    data-bs-toggle="modal" data-bs-target="#createDreamModal">꿈 등록
+            </button>
+        </div>
+
+        <!-- 검색 섹션 -->
+        <div class="search-section mb-4">
+            <div class="search-container">
+                <div class="search-tabs">
+                    <button class="search-tab active" data-search-type="title">
+                        <i class="fas fa-heading me-2"></i>제목
+                    </button>
+                    <button class="search-tab" data-search-type="category">
+                        <i class="fas fa-tag me-2"></i>카테고리
+                    </button>
+                    <button class="search-tab" data-search-type="tag">
+                        <i class="fas fa-hashtag me-2"></i>태그
+                    </button>
                 </div>
-            </div>
-        </header>
-        <!-- About-->
-        <section class="about-section text-center" id="about">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-lg-8">
-                        <h2 class="text-white mb-4">Built with Bootstrap 5</h2>
-                        <p class="text-white-50">
-                            Grayscale is a free Bootstrap theme created by Start Bootstrap. It can be yours right now, simply download the template on
-                            <a href="https://startbootstrap.com/theme/grayscale/">the preview page.</a>
-                            The theme is open source, and you can use it for any purpose, personal or commercial.
-                        </p>
-                    </div>
-                </div>
-                <img class="img-fluid" src="../static/images/ipad.png" alt="..." />
-            </div>
-        </section>
-        <!-- Projects-->
-        <section class="projects-section bg-light" id="projects">
-            <div class="container px-4 px-lg-5">
-                <!-- Featured Project Row-->
-                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="../static/images/bg-masthead.jpg" alt="..." /></div>
-                    <div class="col-xl-4 col-lg-5">
-                        <div class="featured-text text-center text-lg-left">
-                            <h4>Shoreline</h4>
-                            <p class="text-black-50 mb-0">Grayscale is open source and MIT licensed. This means you can use it for any project - even commercial projects! Download it, customize it, and publish your website!</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Project One Row-->
-                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="../static/images/demo-image-01.jpg" alt="..." /></div>
-                    <div class="col-lg-6">
-                        <div class="bg-black text-center h-100 project">
-                            <div class="d-flex h-100">
-                                <div class="project-text w-100 my-auto text-center text-lg-left">
-                                    <h4 class="text-white">Misty</h4>
-                                    <p class="mb-0 text-white-50">An example of where you can put an image of a project, or anything else, along with a description.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Project Two Row-->
-                <div class="row gx-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="../static/images/demo-image-02.jpg" alt="..." /></div>
-                    <div class="col-lg-6 order-lg-first">
-                        <div class="bg-black text-center h-100 project">
-                            <div class="d-flex h-100">
-                                <div class="project-text w-100 my-auto text-center text-lg-right">
-                                    <h4 class="text-white">Mountains</h4>
-                                    <p class="mb-0 text-white-50">Another example of a project with its respective description. These sections work well responsively as well!</p>
-                                </div>
-                            </div>
-                        </div>
+                <div class="search-input-wrapper">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input" id="searchInput" placeholder="검색어를 입력하세요"/>
+                        <button type="button" class="btn btn-primary search-btn" id="searchBtn">
+                            <i class="fas fa-search me-1"></i>검색
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary reset-btn d-none" id="resetBtn">
+                            <i class="fas fa-times me-1"></i>초기화
+                        </button>
                     </div>
                 </div>
             </div>
-        </section>
-        <!-- Signup-->
-        <section class="signup-section" id="signup">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5">
-                    <div class="col-md-10 col-lg-8 mx-auto text-center">
-                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Subscribe to receive updates!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                        <form class="form-signup" id="contactForm" data-sb-form-api-token="API_TOKEN">
-                            <!-- Email address input-->
-                            <div class="row input-group-newsletter">
-                                <div class="col"><input class="form-control" id="emailAddress" type="email" placeholder="Enter email address..." aria-label="Enter email address..." data-sb-validations="required,email" /></div>
-                                <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit">Notify Me!</button></div>
+        </div>
+
+        <div class="row g-4" id="dreamsContainer" th:if="${dreams} != null">
+            <div class="col-md-4" th:each="dream : ${dreams}">
+                <div class="card h-100 dream-card" th:attr="data-dream-id=${dream.id}, data-user-id=${dream.userId}">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${dream.title}">꿈 제목</h5>
+                        <div class="dream-meta mb-2"
+                             th:if="${dream.categories != null and !dream.categories.isEmpty()}">
+                            <div class="dream-categories">
+                                <button id="category" class="category-badge" style="border: none;" th:each="category : ${dream.categories}"
+                                    th:text="${category}" th:value="${category}" onclick="searchByCatOrTag(this.value, 1)">
+                                    카테고리
+                                </button>
                             </div>
-                            <div class="invalid-feedback mt-2" data-sb-feedback="emailAddress:required">An email is required.</div>
-                            <div class="invalid-feedback mt-2" data-sb-feedback="emailAddress:email">Email is not valid.</div>
-                            <!-- Submit success message-->
-                            <!---->
-                            <!-- This is what your users will see when the form-->
-                            <!-- has successfully submitted-->
-                            <div class="d-none" id="submitSuccessMessage">
-                                <div class="text-center mb-3 mt-2 text-white">
-                                    <div class="fw-bolder">Form submission successful!</div>
-                                    To activate this form, sign up at
-                                    <br />
-                                    <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
-                                </div>
-                            </div>
-                            <!-- Submit error message-->
-                            <!---->
-                            <!-- This is what your users will see when there is-->
-                            <!-- an error submitting the form-->
-                            <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3 mt-2">Error sending message!</div></div>
-                        </form>
+                        </div>
+                        <p class="card-text" th:text="${dream.content}">꿈 내용</p>
+                        <div class="dream-tags mt-3" th:if="${dream.tags != null and !dream.tags.isEmpty()}">
+                            <button id="tag" class="tag-btn" th:each="tag : ${dream.tags}"
+                                    th:text="'#' + ${tag}" th:value="${tag}" onclick="searchByCatOrTag(this.value, 2)">
+                                #태그
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <button class="btn btn-primary btn-sm">자세히 보기</button>
                     </div>
                 </div>
             </div>
-        </section>
-        <!-- Contact-->
-        <section class="contact-section bg-black">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5">
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="card py-4 h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-map-marked-alt text-primary mb-2"></i>
-                                <h4 class="text-uppercase m-0">Address</h4>
-                                <hr class="my-4 mx-auto" />
-                                <div class="small text-black-50">4923 Market Street, Orlando FL</div>
-                            </div>
-                        </div>
+        </div>
+
+        <!-- 더보기 버튼 -->
+        <div class="text-center mt-4" id="loadMoreContainer" th:if="${hasMore}">
+            <button type="button" class="btn btn-outline-primary" id="loadMoreBtn">
+                <i class="fas fa-chevron-down me-2"></i>더보기
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- 꿈 등록 모달 -->
+<div class="modal fade" id="createDreamModal" tabindex="-1" aria-labelledby="createDreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <!-- 로딩 오버레이 -->
+            <div id="createDreamModalLoading"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+                 style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"
+                         style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="card py-4 h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-envelope text-primary mb-2"></i>
-                                <h4 class="text-uppercase m-0">Email</h4>
-                                <hr class="my-4 mx-auto" />
-                                <div class="small text-black-50"><a href="#!">hello@yourdomain.com</a></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="card py-4 h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-mobile-alt text-primary mb-2"></i>
-                                <h4 class="text-uppercase m-0">Phone</h4>
-                                <hr class="my-4 mx-auto" />
-                                <div class="small text-black-50">+1 (555) 902-8832</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="social d-flex justify-content-center">
-                    <a class="mx-2" href="#!"><i class="fab fa-twitter"></i></a>
-                    <a class="mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
-                    <a class="mx-2" href="#!"><i class="fab fa-github"></i></a>
+                    <p class="mb-0" style="color: black; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려
+                        주세요...</p>
                 </div>
             </div>
-        </section>
-        <!-- Footer-->
-        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Your Website 2023</div></footer>
-        <!-- Bootstrap core JS-->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="../static/js/dreams.js"></script>
-        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
-        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-    </body>
+            <div class="modal-header">
+                <h5 class="modal-title" id="createDreamModalLabel">꿈 등록</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createDreamForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="dreamTitle" class="form-label">제목</label>
+                            <input type="text" class="form-control" id="dreamTitle" placeholder="꿈 제목을 입력하세요" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="dreamContent" class="form-label">내용</label>
+                            <textarea class="form-control" id="dreamContent" rows="6" placeholder="꿈 내용을 입력하세요"
+                                      required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dreamPublished" checked>
+                                <label class="form-check-label" for="dreamPublished">공개하기</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary btn-sm" id="submitDreamBtn">등록</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 꿈 상세 모달 -->
+<div class="modal fade" id="viewDreamModal" tabindex="-1" aria-labelledby="viewDreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <!-- 로딩 오버레이 -->
+            <div id="viewDreamModalLoading"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+                 style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"
+                         style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0" style="color: #64a19d; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려
+                        주세요...</p>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDreamModalLabel">꿈 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">제목</label>
+                    <div id="detailTitle" class="form-control"></div>
+                    <input id="editTitle" class="form-control d-none" type="text" placeholder="제목"/>
+                </div>
+                <div class="mb-3" id="detailContentWrap">
+                    <label class="form-label fw-bold">내용</label>
+                    <div id="detailContent" class="form-control" style="white-space:pre-wrap; min-height: 6rem;"></div>
+                    <textarea id="editContent" class="form-control d-none" rows="6" placeholder="내용"></textarea>
+                </div>
+                <div class="mb-3" id="detailScenesWrap">
+                    <label class="form-label fw-bold">주요 장면 분석</label>
+                    <div id="detailScenes">
+                        <!-- 장면 분석 목록 -->
+                    </div>
+                </div>
+                <div class="mb-3" id="detailInsightWrap">
+                    <label class="form-label fw-bold">심리적 흐름 및 무의식적 메세지</label>
+                    <div id="detailInsight" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석
+                        준비중
+                    </div>
+                </div>
+                <div class="mb-3" id="detailSuggestionWrap">
+                    <label class="form-label fw-bold">조언</label>
+                    <div id="detailSuggestion" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석
+                        준비중
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailCategoriesWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">카테고리</label>
+                    <div class="col">
+                        <div id="detailCategories" class="row">
+                            <!-- 카테고리 목록 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailTagsWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">태그</label>
+                    <div class="col">
+                        <div id="detailTags" class="row">
+                            <!-- 태그 목록 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">공개여부</label>
+                    <div class="col-sm-10">
+                        <div id="detailPublished" class="form-control-plaintext">공개</div>
+                        <div class="form-check d-none" id="editPublishedWrap">
+                            <input class="form-check-input" type="checkbox" id="editPublished">
+                            <label class="form-check-label" for="editPublished">공개하기</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailEmotionWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">
+                        감정 점수
+                        <button class="help-icon"
+                            title="감정 점수는 전체적인 감정의 방향성을 나타냅니다. 1에 가까울수록 긍정적(기쁨, 평온), -1에 가까울수록 부정적(불안, 분노, 슬픔) 감정을 의미합니다."
+                        >
+                            <svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 400 400" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M199.996,0C89.719,0,0,89.72,0,200c0,110.279,89.719,200,199.996,200C310.281,400,400,310.279,400,200 C400,89.72,310.281,0,199.996,0z M199.996,373.77C104.187,373.77,26.23,295.816,26.23,200 c0-95.817,77.957-173.769,173.766-173.769c95.816,0,173.772,77.953,173.772,173.769 C373.769,295.816,295.812,373.77,199.996,373.77z"></path> <path d="M199.996,91.382c-35.176,0-63.789,28.616-63.789,63.793c0,7.243,5.871,13.115,13.113,13.115 c7.246,0,13.117-5.873,13.117-13.115c0-20.71,16.848-37.562,37.559-37.562c20.719,0,37.566,16.852,37.566,37.562 c0,20.714-16.849,37.566-37.566,37.566c-7.242,0-13.113,5.873-13.113,13.114v45.684c0,7.243,5.871,13.115,13.113,13.115 s13.117-5.872,13.117-13.115v-33.938c28.905-6.064,50.68-31.746,50.68-62.427C263.793,119.998,235.176,91.382,199.996,91.382z"></path> <path d="M200.004,273.738c-9.086,0-16.465,7.371-16.465,16.462s7.379,16.465,16.465,16.465c9.094,0,16.457-7.374,16.457-16.465 S209.098,273.738,200.004,273.738z"></path> </g> </g> </g></svg>
+                        </button>
+                    </label>
+                    <div class="col-sm-10">
+                        <div id="detailEmotion" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailMagnitudeWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">
+                        감정 강도
+                        <button class="help-icon"
+                            title="감정 강도는 1에 가까울수록 강한 감정을, 0에 가까울수록 약한 감정(무감정)을 의미합니다."
+                        >
+                            <svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 400 400" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M199.996,0C89.719,0,0,89.72,0,200c0,110.279,89.719,200,199.996,200C310.281,400,400,310.279,400,200 C400,89.72,310.281,0,199.996,0z M199.996,373.77C104.187,373.77,26.23,295.816,26.23,200 c0-95.817,77.957-173.769,173.766-173.769c95.816,0,173.772,77.953,173.772,173.769 C373.769,295.816,295.812,373.77,199.996,373.77z"></path> <path d="M199.996,91.382c-35.176,0-63.789,28.616-63.789,63.793c0,7.243,5.871,13.115,13.113,13.115 c7.246,0,13.117-5.873,13.117-13.115c0-20.71,16.848-37.562,37.559-37.562c20.719,0,37.566,16.852,37.566,37.562 c0,20.714-16.849,37.566-37.566,37.566c-7.242,0-13.113,5.873-13.113,13.114v45.684c0,7.243,5.871,13.115,13.113,13.115 s13.117-5.872,13.117-13.115v-33.938c28.905-6.064,50.68-31.746,50.68-62.427C263.793,119.998,235.176,91.382,199.996,91.382z"></path> <path d="M200.004,273.738c-9.086,0-16.465,7.371-16.465,16.462s7.379,16.465,16.465,16.465c9.094,0,16.457-7.374,16.457-16.465 S209.098,273.738,200.004,273.738z"></path> </g> </g> </g></svg>
+                        </button>
+                    </label>
+                    <div class="col-sm-10">
+                        <div id="detailMagnitude" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="deleteDreamBtn">삭제하기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="reAnalyzeBtn">다시 분석하기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
+                <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer-->
+<footer class="footer bg-black small text-center text-white-50">
+    <div class="container px-4 px-lg-5">Est.Project &copy; Dream Decode 2025</div>
+</footer>
+
+<!-- ✅ 여기서 auth 모달 프래그먼트 포함 -->
+<div th:replace="~{fragments/auth :: auth-modals}"></div>
+
+<!-- jQuery 3.7.1 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<!-- Font Awesome icons (free version)-->
+<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+<!-- Bootstrap core JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Core theme JS-->
+<script src="/js/common.js" th:src="@{/js/common.js}"></script>
+<script src="/js/auth.js" th:src="@{/js/auth.js}"></script>
+<script src="/js/dreams.js" th:src="@{/js/dreams.js}"></script>
+</body>
 </html>
