@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:file:.env[.properties]   # .env 로드
   profiles:
-    active: local
+    active: prod
 app:
   mail:
     from: "박정훈 <${MAIL_USERNAME}>"
