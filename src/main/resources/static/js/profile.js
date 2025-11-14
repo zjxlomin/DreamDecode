@@ -223,6 +223,7 @@
 
           this.disabled = true;
           this.textContent = '분석 중...';
+          alert('꿈 분석을 시작합니다. 새로고침 시 작업이 취소될 수 있습니다.');
           try {
               const analysisRes = await fetch(`/api/dream/${dreamId}/analysis`, {
                   method: 'POST',
@@ -238,6 +239,7 @@
           }
           catch (e) {
               this.disabled = false;
+              this.textContent = '자세히 보기';
               console.error(e);
               alert('오류가 발생했습니다: ' + (e.message || e));
           }
