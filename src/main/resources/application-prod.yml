@@ -22,3 +22,5 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
+gcp:
+  credentials-path: ${GCP_CREDENTIALS_PATH}
