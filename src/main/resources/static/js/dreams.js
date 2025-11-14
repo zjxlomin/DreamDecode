@@ -84,7 +84,7 @@ $(document).ready(function() {
         }
         const encodedQuery = encodeURIComponent(currentSearchQuery);
         const urlMap = {
-            'title': `/api/dream/title?q=${encodedQuery}&page=${page}`,
+            'title': `/api/dream/title?title=${encodedQuery}&page=${page}`,
             'category': `/api/dream/category/${encodedQuery}?page=${page}`,
             'tag': `/api/dream/tag/${encodedQuery}?page=${page}`
         };

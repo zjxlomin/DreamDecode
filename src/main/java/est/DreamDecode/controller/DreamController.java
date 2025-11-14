@@ -9,17 +9,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class DreamController {
   private final DreamService dreamService;
 
+  // 현재 로그인 된 사용자 확인
   private Long getCurrentUserId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || authentication.getPrincipal() == null) {
@@ -34,16 +33,6 @@ public class DreamController {
       return Long.valueOf(principalStr);
     }
     throw new IllegalStateException("지원되지 않는 인증 주체 타입: " + principal.getClass());
-  }
-
-  @GetMapping("/dream")
-  public String getPublicDreams(Model model) {
-    // 초기 로드는 첫 페이지(9개)만
-    Page<DreamResponse> dreamPage = dreamService.getAllPublicDreams(0);
-    model.addAttribute("dreams", dreamPage.getContent());
-    model.addAttribute("hasMore", dreamPage.hasNext());
-
-    return "dreams";
   }
 
   // 전체 조회 (페이지네이션)
@@ -75,7 +64,7 @@ public class DreamController {
   // 제목으로 조회 (페이지네이션)
   @GetMapping("/api/dream/title")
   public ResponseEntity<Page<DreamResponse>> getDreamsByTitle(
-      @RequestParam("q") String title,
+      @RequestParam("title") String title,
       @RequestParam(value = "page", defaultValue = "0") int page) {
     Page<DreamResponse> dreamPage = dreamService.getDreamsByTitle(title, page);
     return ResponseEntity.ok(dreamPage); // 200 OK + JSON 반환
@@ -130,4 +119,5 @@ public class DreamController {
     List<DreamResponse> dreams = dreamService.getMyAllDreams(userId);
     return ResponseEntity.ok(dreams); // 200 OK + JSON 반환
   }
+
 }
