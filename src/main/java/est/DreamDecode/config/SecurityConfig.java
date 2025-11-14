@@ -39,7 +39,9 @@ public class SecurityConfig {
                         // ===== 정적 리소스 =====
                         .requestMatchers(
                                 "/css/**", "/js/**", "/images/**",
-                                "/webjars/**", "/favicon.ico"
+                                "/webjars/**", "/favicon.ico",
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs/**", "/v3/api-docs.yaml"
                         ).permitAll()
 
                         // ===== 공개 페이지 =====
