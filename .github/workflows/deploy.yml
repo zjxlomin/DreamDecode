@@ -19,7 +19,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script_stop: true
           script: |
             # 1) 프로젝트 폴더로 이동
             cd ${{ secrets.EC2_APP_DIR }}
