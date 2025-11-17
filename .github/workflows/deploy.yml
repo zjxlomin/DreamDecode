@@ -19,6 +19,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
           script: |
             # 1) 프로젝트 폴더로 이동
             cd ${{ secrets.EC2_APP_DIR }}
@@ -36,6 +37,11 @@ jobs:
               kill -9 $PID
             fi
 
-            # 5) 새 버전 실행 (dev 프로필로 실행)
-            nohup java -jar build/libs/DreamDecode-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > app.log 2>&1 &
+             # 5) GCP 자격증명 경로 환경변수 설정 
+            export GCP_CREDENTIALS_PATH=${{ secrets.GCP_CREDENTIALS_PATH }}
+            echo "GCP_CREDENTIALS_PATH=$GCP_CREDENTIALS_PATH"
+
+            # 6) 새 버전 실행 (dev 프로필로 실행)
+            nohup java -jar build/libs/DreamDecode-0.0.1-SNAPSHOT.jar \
+              --spring.profiles.active=dev > app.log 2>&1 &
             echo "Deployment completed."
