@@ -17,7 +17,19 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("DreamDecode API")
-                        .description("DreamDecode 서비스의 REST API 문서입니다.")
+                        .description("""
+                                DreamDecode 서비스의 REST API 문서입니다.
+                                
+                                ## 주요 기능
+                                - 사용자 인증 및 회원가입
+                                - 꿈 등록, 조회, 수정, 삭제
+                                - AI 기반 꿈 심리 분석
+                                - 프로필 관리
+                                
+                                ## 인증
+                                - 대부분의 API는 JWT 토큰 인증이 필요합니다.
+                                - 로그인 후 발급받은 Access Token을 Authorization 헤더에 포함하거나 쿠키로 전송하세요.
+                                """)
                         .version("v1")
                         .license(new License().name("MIT License"))
                         .contact(new Contact()
