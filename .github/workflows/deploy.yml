@@ -43,6 +43,6 @@ jobs:
 
             # 6) 새 버전 실행 (dev 프로필로 실행)
             nohup java -jar build/libs/DreamDecode-0.0.1-SNAPSHOT.jar \
-              --spring.profiles.active=dev > app.log 2>&1 &
+              --spring.profiles.active=prod > app.log 2>&1 &
             echo "Deployment completed."
             exit 0    
