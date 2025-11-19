@@ -1,37 +1,101 @@
 package est.DreamDecode.service;
 
 import est.DreamDecode.domain.Dream;
+import est.DreamDecode.dto.AnalysisResponse;
 import est.DreamDecode.dto.DreamRequest;
 import est.DreamDecode.dto.DreamResponse;
+import est.DreamDecode.exception.DreamNotFoundException;
 import est.DreamDecode.repository.DreamRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DreamService {
-  private DreamRepository dreamRepository;
-
-  public DreamService(DreamRepository dreamRepository) {
-    this.dreamRepository = dreamRepository;
-  }
+  private final DreamRepository dreamRepository;
+  private final NaturalLanguageService nlpService;
+  private final AnalysisService analysisService;
+  private static final int PAGE_SIZE = 9;
 
   public List<DreamResponse> getAllPublicDreams() {
-    List<DreamResponse> dreams = dreamRepository.findAllByIsPublicTrue().stream()
+    List<DreamResponse> dreams = dreamRepository.findAllByPublishedTrue().stream()
                                          .map(DreamResponse::from)
                                          .toList();
     return dreams;
   }
 
+  public Page<DreamResponse> getAllPublicDreams(int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByPublishedTrueOrderByCreatedAtDesc(pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
+  public List<DreamResponse> getDreamsByCategory(String category) {
+    List<DreamResponse> dreams = dreamRepository.findByCategoriesContaining(category).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public Page<DreamResponse> getDreamsByCategory(String category, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByCategoriesContaining(category, pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
+  public List<DreamResponse> getDreamsByTag(String tag) {
+    List<DreamResponse> dreams = dreamRepository.findByTagsContaining(tag).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public Page<DreamResponse> getDreamsByTag(String tag, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByTagsContaining(tag, pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
+  public List<DreamResponse> getDreamsByTitle(String title) {
+    List<DreamResponse> dreams = dreamRepository.findByTitleContaining(title).stream()
+                                         .map(DreamResponse::from)
+                                         .toList();
+    return dreams;
+  }
+
+  public Page<DreamResponse> getDreamsByTitle(String title, int page) {
+    Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+    Page<Dream> dreamPage = dreamRepository.findByTitleContaining(title, pageable);
+    return dreamPage.map(DreamResponse::from);
+  }
+
+  public DreamResponse getDreamById(Long id) {
+    Dream dream = dreamRepository.findById(id)
+                         .orElseThrow(() -> new DreamNotFoundException(id));
+    return DreamResponse.from(dream);
+  }
+
   public Dream saveDream(DreamRequest request) {
-    return dreamRepository.save(request.toEntity());
+    Dream dream = dreamRepository.save(request.toEntity());
+
+    Long dreamId = dream.getId();
+    analysisService.addOrUpdateAnalysis(dreamId, true); // Alan api로 꿈 내용 전송 및 NLP 감정 분석 수행
+
+    return dream;
   }
 
   @Transactional
-  public Dream updateDream(Long dreamId, DreamRequest request) {
+  public DreamResponse updateDream(Long dreamId, DreamRequest request) {
     Dream dream = dreamRepository.findById(dreamId)
-                          .orElseThrow(() -> new RuntimeException("Dream not found with id " + dreamId));
+                          .orElseThrow(() -> new DreamNotFoundException(dreamId));
+
+    boolean contentUpdated = request.getContent() != null && !dream.getContent().equals(request.getContent());
 
     // DTO에서 가져온 값으로 엔티티 업데이트
     if (request.getTitle() != null) {
@@ -43,12 +107,34 @@ public class DreamService {
     if (request.getUserId() != null) {
       dream.setUserId(request.getUserId());
     }
-    dream.setPublic(request.isPublic());
+    dream.setPublished(request.isPublished());
 
-    return dream;
+    if(contentUpdated) {
+        analysisService.addOrUpdateAnalysis(dreamId, false);
+    }
+
+    return DreamResponse.from(dream);
   }
 
   public void deleteDream(Long dreamId) {
     dreamRepository.deleteById(dreamId);
+  }
+
+  //  현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, 전체 목록)
+  public List<DreamResponse> getMyAllDreams(Long userId) {
+    List<Dream> dreams = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    return dreams.stream()
+                 .map(DreamResponse::from)
+                 .toList();
+  }
+
+  // 현재 로그인한 사용자의 꿈 목록을 가져옵니다 (최신순, limit 만큼)
+  public List<DreamResponse> getMyDreams(Long userId, int limit) {
+    Pageable pageable = PageRequest.of(0, Math.max(limit, 1));
+    Page<Dream> dreamPage = dreamRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    return dreamPage.getContent()
+                    .stream()
+                    .map(DreamResponse::from)
+                    .toList();
   }
 }

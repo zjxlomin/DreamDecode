@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]   # .env 로드
+  profiles:
+    active: prod
+app:
+  mail:
+    from: "박정훈 <${MAIL_USERNAME}>"
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-ms: ${JWT_AT_MS:900000}
+  refresh-token-validity-ms: ${JWT_RT_MS:1209600000}

@@ -1,0 +1,48 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2 via SSH
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            # 1) 프로젝트 폴더로 이동
+            cd ${{ secrets.EC2_APP_DIR }}
+
+            # 2) 최신 코드 받기
+            git pull origin main
+
+            # 3) 빌드
+            ./gradlew build -x test
+
+            # 4) 기존 실행 중인 서버 종료
+            PID=$(pgrep -f "DreamDecode-0.0.1-SNAPSHOT.jar")
+            if [ -n "$PID" ]; then
+              echo "Stopping existing server: $PID"
+              kill -9 $PID
+            fi
+
+             # 5) GCP 자격증명 경로 환경변수 설정 
+            export GCP_CREDENTIALS_PATH=${{ secrets.GCP_CREDENTIALS_PATH }}
+            echo "GCP_CREDENTIALS_PATH=$GCP_CREDENTIALS_PATH"
+
+            # 6) 새 버전 실행 (dev 프로필로 실행)
+            nohup java -jar build/libs/DreamDecode-0.0.1-SNAPSHOT.jar \
+              --spring.profiles.active=prod > app.log 2>&1 &
+            echo "Deployment completed."
+            exit 0    

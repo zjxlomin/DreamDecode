@@ -16,14 +16,23 @@ import java.time.LocalDateTime;
 public class Analysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "analysis", updatable = false)
+    @Column(name = "analysis_id", updatable = false)
     private Long analysisId;
 
-    @Column(name = "analysis_result", columnDefinition = "json", nullable = false)
-    private String analysisResult;
+    @Column(name = "insight", nullable = false)
+    private String insight;
+
+    @Column(name = "suggestion", nullable = false)
+    private String suggestion;
+
+    @Column(name = "summary", nullable = false)
+    private String summary;
 
     @Column(name = "sentiment", nullable = false)
     private double sentiment;
+
+    @Column(name = "magnitude", nullable = false)
+    private double magnitude;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -37,8 +46,17 @@ public class Analysis {
     @JoinColumn(name = "dream_id")
     private Dream dream;
 
-    public void updateAnalysis(String analysisResult, double sentiment) {
-        this.analysisResult = analysisResult;
+    public void updateAnalysis(
+            String insight,
+            String suggestion,
+            String summary,
+            double sentiment,
+            double magnitude
+    ) {
+        this.insight = insight;
+        this.suggestion = suggestion;
+        this.summary = summary;
         this.sentiment = sentiment;
+        this.magnitude = magnitude;
     }
 }

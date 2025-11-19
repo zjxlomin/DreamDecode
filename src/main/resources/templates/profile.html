@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content="Dream Decode 마이페이지"/>
+    <meta name="author" content="Dream Decode"/>
+    <title>My Page | Dream Decode</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" th:href="@{/images/favicon.ico}"/>
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="/css/common.css" rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link href="/css/dreams.css" rel="stylesheet" th:href="@{/css/dreams.css}"/>
+    <link href="/css/profile.css" rel="stylesheet" th:href="@{/css/profile.css}"/>
+</head>
+<body id="page-top">
+<div th:replace="~{fragments/nav :: nav(false)}"></div>
+
+<header class="masthead">
+    <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+        <div class="d-flex justify-content-center">
+            <div class="text-center">
+                <h1 class="mx-auto my-0 text-uppercase">My Page</h1>
+                <h2 class="text-white-50 mx-auto mt-2 mb-5">
+                    당신의 꿈과 여정을 기록하고 관리하세요
+                </h2>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="py-5" id="profile">
+    <div class="container px-4 px-lg-5">
+        <div class="profile-wrapper mb-5">
+            <div class="profile-card">
+                <div class="profile-name" id="profileDisplayName"
+                     th:text="${profile != null && profile.displayName != null ? profile.displayName :
+                                (profile != null && profile.email != null ? profile.email : 'Dreamer')}">
+                    Dreamer
+                </div>
+                <div class="profile-email" id="profileEmailDisplay"
+                     th:text="${profile != null && profile.email != null ? profile.email : 'dreamer@example.com'}">
+                    dreamer@example.com
+                </div>
+                <div class="profile-meta">
+                    가입일:
+                    <span id="profileJoinDate"
+                          th:text="${profile != null && profile.createdAt != null ? #temporals.format(profile.createdAt, 'yyyy년 MM월 dd일') :
+                                   (profile != null && profile.joinedAt != null ? #temporals.format(profile.joinedAt, 'yyyy년 MM월 dd일') : '-')}">
+                        -
+                    </span>
+                </div>
+                <div class="profile-badges" th:if="${profile == null || #lists.isEmpty(profile.badges)}">
+                    <span class="profile-badge"><i class="fas fa-star"></i>Dreamer</span>
+                </div>
+                <div class="profile-badges" th:if="${profile != null && !#lists.isEmpty(profile.badges)}">
+                    <span class="profile-badge" th:each="badge : ${profile.badges}">
+                        <i class="fas fa-star"></i>
+                        <span th:text="${badge}">Badge</span>
+                    </span>
+                </div>
+                <div class="profile-actions">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#editProfileModal">프로필 수정
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#changePasswordModal">비밀번호 변경
+                    </button>
+                </div>
+            </div>
+
+            <div class="profile-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Dream Insights</h3>
+                </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-label">공유한 꿈</div>
+                        <div class="profile-stat-value" id="profilePublicDreamCount"
+                             th:text="${profile != null && profile.publicDreamCount != null ? profile.publicDreamCount : 0}">0</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-label">비공개 꿈</div>
+                        <div class="profile-stat-value" id="profilePrivateDreamCount"
+                             th:text="${profile != null && profile.totalDreamCount != null ? T(java.lang.Math).max(0, (profile.totalDreamCount) - (profile.publicDreamCount != null ? profile.publicDreamCount : 0)) : 0}">0
+                        </div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-label">분석 완료</div>
+                        <div class="profile-stat-value" id="profileAnalyzedDreamCount"
+                             th:text="${profile != null && profile.analyzedDreamCount != null ? profile.analyzedDreamCount : 0}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-wrapper mb-5">
+            <div class="profile-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">내 꿈 기록</h3>
+                    <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="viewAllMyDreamBtn">
+                        전체 보기
+                    </button>
+                </div>
+                <div class="dream-list" id="myDreamList"></div>
+                <div class="empty-state d-none" id="myDreamEmptyState">
+                    <i class="fas fa-moon"></i>
+                    <p class="mb-0">아직 등록한 꿈이 없습니다. 새로운 꿈을 기록해보세요!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 꿈 상세 모달 -->
+<div class="modal fade" id="viewDreamModal" tabindex="-1" aria-labelledby="viewDreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <div id="viewDreamModalLoading"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+                 style="background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%); backdrop-filter: blur(8px); z-index: 1050; border-radius: 0.375rem;">
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"
+                         style="width: 3rem; height: 3rem; border-color: #64a19d; border-right-color: transparent;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0" style="color: #64a19d; font-weight: 500; font-size: 1rem;">꿈을 분석 중입니다. 잠시만 기다려 주세요...</p>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDreamModalLabel">꿈 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">제목</label>
+                    <div id="detailTitle" class="form-control"></div>
+                    <input id="editTitle" class="form-control d-none" type="text" placeholder="제목"/>
+                </div>
+                <div class="mb-3" id="detailContentWrap">
+                    <label class="form-label fw-bold">내용</label>
+                    <div id="detailContent" class="form-control" style="white-space:pre-wrap; min-height: 6rem;"></div>
+                    <textarea id="editContent" class="form-control d-none" rows="6" placeholder="내용"></textarea>
+                </div>
+                <div class="mb-3" id="detailScenesWrap">
+                    <label class="form-label fw-bold">주요 장면 분석</label>
+                    <div id="detailScenes"></div>
+                </div>
+                <div class="mb-3" id="detailInsightWrap">
+                    <label class="form-label fw-bold">심리적 흐름 및 무의식적 메세지</label>
+                    <div id="detailInsight" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석 준비중</div>
+                </div>
+                <div class="mb-3" id="detailSuggestionWrap">
+                    <label class="form-label fw-bold">조언</label>
+                    <div id="detailSuggestion" class="form-control" style="white-space:pre-wrap; min-height: 6rem;">분석 준비중</div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailCategoriesWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">카테고리</label>
+                    <div class="col">
+                        <div id="detailCategories" class="row"></div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center" id="detailTagsWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">태그</label>
+                    <div class="col">
+                        <div id="detailTags" class="row"></div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">공개여부</label>
+                    <div class="col-sm-10">
+                        <div id="detailPublished" class="form-control-plaintext">공개</div>
+                        <div class="form-check d-none" id="editPublishedWrap">
+                            <input class="form-check-input" type="checkbox" id="editPublished">
+                            <label class="form-check-label" for="editPublished">공개하기</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailEmotionWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">
+                        감정 점수
+                        <button class="help-icon"
+                                title="감정 점수는 전체적인 감정의 방향성을 나타냅니다. 1에 가까울수록 긍정적(기쁨, 평온), -1에 가까울수록 부정적(불안, 분노, 슬픔) 감정을 의미합니다."
+                        >
+                            <svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 400 400" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M199.996,0C89.719,0,0,89.72,0,200c0,110.279,89.719,200,199.996,200C310.281,400,400,310.279,400,200 C400,89.72,310.281,0,199.996,0z M199.996,373.77C104.187,373.77,26.23,295.816,26.23,200 c0-95.817,77.957-173.769,173.766-173.769c95.816,0,173.772,77.953,173.772,173.769 C373.769,295.816,295.812,373.77,199.996,373.77z"></path> <path d="M199.996,91.382c-35.176,0-63.789,28.616-63.789,63.793c0,7.243,5.871,13.115,13.113,13.115 c7.246,0,13.117-5.873,13.117-13.115c0-20.71,16.848-37.562,37.559-37.562c20.719,0,37.566,16.852,37.566,37.562 c0,20.714-16.849,37.566-37.566,37.566c-7.242,0-13.113,5.873-13.113,13.114v45.684c0,7.243,5.871,13.115,13.113,13.115 s13.117-5.872,13.117-13.115v-33.938c28.905-6.064,50.68-31.746,50.68-62.427C263.793,119.998,235.176,91.382,199.996,91.382z"></path> <path d="M200.004,273.738c-9.086,0-16.465,7.371-16.465,16.462s7.379,16.465,16.465,16.465c9.094,0,16.457-7.374,16.457-16.465 S209.098,273.738,200.004,273.738z"></path> </g> </g> </g></svg>
+                        </button>
+                    </label>
+                    <div class="col-sm-10">
+                        <div id="detailEmotion" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+                <div class="row mb-1 align-items-center" id="detailMagnitudeWrap">
+                    <label class="col-sm-2 col-form-label fw-bold mb-0">
+                        감정 강도
+                        <button class="help-icon"
+                                title="감정 강도는 1에 가까울수록 강한 감정을, 0에 가까울수록 약한 감정(무감정)을 의미합니다."
+                        >
+                            <svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 400 400" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M199.996,0C89.719,0,0,89.72,0,200c0,110.279,89.719,200,199.996,200C310.281,400,400,310.279,400,200 C400,89.72,310.281,0,199.996,0z M199.996,373.77C104.187,373.77,26.23,295.816,26.23,200 c0-95.817,77.957-173.769,173.766-173.769c95.816,0,173.772,77.953,173.772,173.769 C373.769,295.816,295.812,373.77,199.996,373.77z"></path> <path d="M199.996,91.382c-35.176,0-63.789,28.616-63.789,63.793c0,7.243,5.871,13.115,13.113,13.115 c7.246,0,13.117-5.873,13.117-13.115c0-20.71,16.848-37.562,37.559-37.562c20.719,0,37.566,16.852,37.566,37.562 c0,20.714-16.849,37.566-37.566,37.566c-7.242,0-13.113,5.873-13.113,13.114v45.684c0,7.243,5.871,13.115,13.113,13.115 s13.117-5.872,13.117-13.115v-33.938c28.905-6.064,50.68-31.746,50.68-62.427C263.793,119.998,235.176,91.382,199.996,91.382z"></path> <path d="M200.004,273.738c-9.086,0-16.465,7.371-16.465,16.462s7.379,16.465,16.465,16.465c9.094,0,16.457-7.374,16.457-16.465 S209.098,273.738,200.004,273.738z"></path> </g> </g> </g></svg>
+                        </button>
+                    </label>
+                    <div class="col-sm-10">
+                        <div id="detailMagnitude" class="form-control-plaintext">-점</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="deleteDreamBtn">삭제하기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="reAnalyzeBtn">다시 분석하기</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="editDreamBtn">수정하기</button>
+                <button type="button" class="btn btn-primary btn-sm d-none" id="saveDreamBtn">저장</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">취소</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">프로필 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="profileForm" class="profile-form">
+                    <div class="mb-3">
+                        <label for="profileEmail" class="form-label">이메일</label>
+                        <input type="email" class="form-control" id="profileEmail" readonly>
+                        <div class="form-text">이메일은 변경할 수 없습니다.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="profileName" class="form-label">이름</label>
+                        <input type="text" class="form-control" id="profileName" required placeholder="이름을 입력해주세요">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">성별</label>
+                        <div class="d-flex flex-wrap gap-3 profile-gender-group">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="profileGender" id="profileGenderMale" value="1">
+                                <label class="form-check-label" for="profileGenderMale">남성</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="profileGender" id="profileGenderFemale" value="2">
+                                <label class="form-check-label" for="profileGenderFemale">여성</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="profileBirthday" class="form-label">생년월일</label>
+                        <input type="date" class="form-control" id="profileBirthday" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                <button type="submit" class="btn btn-primary btn-sm" form="profileForm">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header pb-0 border-0">
+                <div>
+                    <h5 class="modal-title" id="changePasswordModalLabel">비밀번호 변경</h5>
+                    <p class="modal-subtitle text-muted small mb-0">현재 비밀번호 확인 후 새 비밀번호를 입력하세요.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div id="pwChangeStep1">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">현재 비밀번호</label>
+                        <input type="password" class="form-control" id="currentPassword" autocomplete="current-password">
+                        <div class="form-text">현재 사용 중인 비밀번호를 입력해 주세요.</div>
+                    </div>
+                </div>
+                <div id="pwChangeStep2" class="d-none">
+                    <hr class="text-muted opacity-25 my-4">
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">새 비밀번호</label>
+                        <input type="password" class="form-control" id="newPassword" autocomplete="new-password">
+                        <small class="form-text text-muted">영문과 숫자를 조합한 8~20자 비밀번호를 권장합니다.</small>
+                        <div class="form-text text-danger d-none" id="newPasswordError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPasswordConfirm" class="form-label">새 비밀번호 확인</label>
+                        <input type="password" class="form-control" id="newPasswordConfirm" autocomplete="new-password">
+                        <div class="form-text text-danger d-none" id="newPasswordConfirmError"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <div id="pwChangeStep1Buttons" class="w-100 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="checkCurrentPasswordBtn">확인</button>
+                </div>
+                <div id="pwChangeStep2Buttons" class="w-100 d-flex justify-content-between d-none">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="changePasswordBtn">비밀번호 변경</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer bg-black small text-center text-white-50">
+    <div class="container px-4 px-lg-5">Est.Project &copy; Dream Decode 2025</div>
+</footer>
+
+<div th:replace="~{fragments/auth :: auth-modals}"></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/common.js" th:src="@{/js/common.js}"></script>
+<script src="/js/auth.js" th:src="@{/js/auth.js}"></script>
+<script src="/js/profile.js" th:src="@{/js/profile.js}"></script>
+</body>
+</html>
